@@ -52,8 +52,8 @@ namespace CsLox
                 return visitor.VisitLiteralExpr(this);
             }
 
-            public object Value { get; }
-            public Literal (object value)
+            public object? Value { get; }
+            public Literal (object? value)
             {
                 Value = value;
             } // ctor
