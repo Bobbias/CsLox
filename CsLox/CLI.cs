@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ReadLineReboot;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using static CsLox.Token;
 
 namespace CsLox
 {
@@ -120,6 +121,18 @@ namespace CsLox
             var err = Console.Error;
             err.WriteLine($"[line {line}] Error {where}: {message}");
             HadError = true;
+        }
+
+        public static void Error(Token token, string message)
+        {
+            if (token.Type == TokenType.EOF)
+            {
+                Report(token.Line, " at end", message);
+            }
+            else
+            {
+                Report(token.Line, $" at '{token.Lexeme}'", message);
+            }
         }
 
         internal class ConsoleUtil
