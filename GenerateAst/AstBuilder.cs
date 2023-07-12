@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GenerateAst
 {
-    internal class AstBuilder
+    internal static class AstBuilder
     {
         public static void DefineAst(FileInfo outputFile, List<string> types)
         {
@@ -18,6 +18,21 @@ namespace GenerateAst
             {
                 sr.WriteLine("using System;\n");
                 sr.WriteLine("namespace CsLox\n{");
+
+                sr.WriteLine("""
+                    /*
+                     * The following EBNF describes the disambiguated Lox grammar.
+                     * expression     → equality ;
+                     * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+                     * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+                     * term           → factor ( ( "-" | "+" ) factor )* ;
+                     * factor         → unary ( ( "/" | "*" ) unary )* ;
+                     * unary          → ( "!" | "-" ) unary
+                     *                | primary ;
+                     * primary        → NUMBER | STRING | "true" | "false" | "nil"
+                     *                | "(" expression ")" ;
+                     */
+                    """);
 
                 sr.WriteLine($"    abstract internal class {baseName}\n    {{");
 
