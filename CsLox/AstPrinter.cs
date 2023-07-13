@@ -27,7 +27,8 @@ namespace CsLox
 
         public string VisitLiteralExpr(Expr.Literal expr)
         {
-            return expr.Value.ToString() ?? "nil";
+            if (expr.Value == null) return "nil";
+            return expr.Value!.ToString() ?? "nil";
         }
 
         public string VisitUnaryExpr(Expr.Unary expr)
