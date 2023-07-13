@@ -195,7 +195,7 @@ namespace CsLox
         /// <param name="literal">An <see cref="object"/> representing a literal value.</param>
         private void AddToken(TokenType type, object? literal)
         {
-            var text = Source.Substring(start, start - current);
+            var text = Source.Substring(start, current - start);
             Tokens.Add(new Token(type, text, literal, line));
         }
 
@@ -232,7 +232,7 @@ namespace CsLox
             Advance();
 
             // Trim the surrounding quotes.
-            var value = Source.Substring(start + 1, (current - 1) - start);
+            var value = Source.Substring(start + 1, (current - 1) - (start + 1));
             AddToken(TokenType.STRING, value);
         }
 
