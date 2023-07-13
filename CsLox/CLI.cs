@@ -74,7 +74,7 @@ namespace CsLox
         /// <param name="file">The file to interpret.</param>
         public static void HandleInterpretCommand(FileInfo file)
         {
-            Console.WriteLine($"Interpret `{file.FullName}`.");
+            RunFile(file);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace CsLox
         /// </summary>
         public static void HandleReplCommand()
         {
-            Console.WriteLine($"Run REPL.");
+            RunPrompt();
         }
 
         /// <summary>
@@ -91,7 +91,16 @@ namespace CsLox
         /// <param name="file">The file to process.</param>
         public static void HandleDebugLexCommand(FileInfo file)
         {
-            Console.WriteLine($"Print Lexer results for `{file.FullName}`.");
+            var reader = file.OpenText();
+            var source = reader.ReadToEnd();
+
+            var scanner = new Scanner(source);
+            var tokens = scanner.ScanTokens();
+
+            foreach (var token in tokens)
+            {
+                Console.WriteLine(token);
+            }
         }
 
         /// <summary>
@@ -100,7 +109,18 @@ namespace CsLox
         /// <param name="file"></param>
         public static void HandleDebugParseCommand(FileInfo file)
         {
-            Console.WriteLine($"Print Parser results for `{file.FullName}`.");
+            var reader = file.OpenText();
+            var source = reader.ReadToEnd();
+
+            var scanner = new Scanner(source);
+            var tokens = scanner.ScanTokens();
+            var parser = new Parser(tokens);
+            var statements = parser.Parse();
+
+            foreach (var statement in statements)
+            {
+                Console.WriteLine($"Statement: {statement}");
+            }
         }
 
         /// <summary>
@@ -152,13 +172,13 @@ namespace CsLox
             var scanner = new Scanner(source);
             var tokens = scanner.ScanTokens();
             var parser = new Parser(tokens);
-            var expr = parser.Parse();
+            var statements = parser.Parse();
 
             // Stop if there was a syntax error.
             if (HadError) return;
 
             // TODO: Handle null expr
-            Interpreter.Interpret(expr!);
+            Interpreter.Interpret(statements);
         }
 
         /// <summary>

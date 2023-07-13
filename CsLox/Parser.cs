@@ -9,6 +9,10 @@ using static CsLox.Token;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 /*
+ * program        → statement* EOF ;
+ * statement      → exprStmt | printStmt ;
+ * exprStmt       → expression ";" ;
+ * printStmt      → "print" expression ";" ;
  * expression     → equality ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -32,22 +36,52 @@ namespace CsLox
             Tokens = tokens;
         }
 
-        public Expr? Parse()
+        public List<Stmt> Parse()
         {
-            try
+            var statements = new List<Stmt>();
+            while (!IsAtEnd())
             {
-                return Expression();
+                statements.Add(Statement());
             }
-            catch (ParseException e)
-            {
-                return null;
-            }
+
+            return statements;
         }
 
+        /// <summary>
+        /// expression     → equality ;
+        /// </summary>
+        /// <returns></returns>
         private Expr Expression()
         {
             return Equality();
         }
+
+        private Stmt Statement()
+        {
+            if (Match(TokenType.PRINT))
+            {
+                return PrintStatement();
+            }
+
+            return ExpressionStatement();
+        }
+
+        private Stmt PrintStatement()
+        {
+            var value = Expression();
+            Consume(TokenType.SEMICOLON, "Expected ';' after value.");
+
+            return new Stmt.Print(value);
+        }
+
+        private Stmt ExpressionStatement()
+        {
+            var expr = Expression();
+            Consume(TokenType.SEMICOLON, "Expected ';' after expression.");
+
+            return new Stmt.Expression(expr);
+        }
+
         /// <summary>
         /// equality       → comparison ( ( "!=" | "==" ) comparison )* ;
         /// </summary>

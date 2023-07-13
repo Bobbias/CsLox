@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace CsLox
 {
-    internal class Interpreter : Expr.IVisitor<object>
+    // Note: Stmt.IVisitor<object> should actually be Stmt.IVisitor<void>, but that is not possible in c#.
+    //       Instead what we have to do is create a dummy return type (in this case, object) and return
+    //       dummy values from our Visit functions (in this case null).
+    //       This would be cleaner in either F# or any language that has Unit, or Void as a usable type
+    //       in these situations.
+    internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         public object VisitBinaryExpr(Expr.Binary expr)
         {
@@ -92,12 +97,14 @@ namespace CsLox
         /// Interpret a Lox expression.
         /// </summary>
         /// <param name="expr"></param>
-        public void Interpret(Expr expr)
+        public void Interpret(List<Stmt> statements)
         {
             try
             {
-                var value = Evaluate(expr);
-                Console.WriteLine(Stringify(value));
+                foreach (var statement in statements)
+                {
+                    Execute(statement);
+                }
             }
             catch (CsLoxRuntimeException e)
             {
@@ -113,6 +120,11 @@ namespace CsLox
         private object Evaluate(Expr expr)
         {
             return expr.Accept(this);
+        }
+
+        private void Execute(Stmt stmt)
+        {
+            stmt.Accept(this);
         }
 
         /// <summary>
@@ -163,6 +175,21 @@ namespace CsLox
             }
 
             return obj.ToString() ?? "nil";
+        }
+
+        public object VisitExpressionStmt(Stmt.Expression stmt)
+        {
+            Evaluate(stmt.Expr);
+            
+            return null;
+        }
+
+        public object VisitPrintStmt(Stmt.Print stmt)
+        {
+            var value = Evaluate(stmt.Expr);
+            Console.WriteLine(Stringify(value));
+
+            return null;
         }
     }
 }

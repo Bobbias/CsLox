@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "CsLox prints.lox": {
+      "commandName": "Project",
+      "commandLineArgs": "run prints.lox",
+      "workingDirectory": "D:\\src\\CraftingInterpreters\\Tests\\Scripts"
+    }
+  }
+}
