@@ -10,7 +10,7 @@ using static CsLox.Token;
 
 namespace CsLox
 {
-    internal static class CLI
+    public static class CLI
     {
         /// <summary>
         /// Indicates whether the CLI environment we're running in supports ANSI escape codes.

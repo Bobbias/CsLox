@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CsLox
 {
-    internal class ParseException : ApplicationException
+    public class ParseException : ApplicationException
     {
         public ParseException() : base()
         {
@@ -21,7 +21,7 @@ namespace CsLox
         }
     }
 
-    internal class CsLoxRuntimeException: ApplicationException
+    public class CsLoxRuntimeException: ApplicationException
     {
         public Token? Token { get; private set; }
 

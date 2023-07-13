@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CsLox
 {
-    internal class Token
+    public class Token
     {
         public enum TokenType
         {
