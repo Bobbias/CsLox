@@ -135,7 +135,7 @@ namespace CsLox
             }
         }
 
-        internal class ConsoleUtil
+        internal static class ConsoleUtil
         {
             [DllImport("kernel32.dll", SetLastError = true)]
             static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
