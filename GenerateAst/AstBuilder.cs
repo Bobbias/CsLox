@@ -22,6 +22,10 @@ namespace GenerateAst
                 sr.WriteLine("""
                     /*
                      * The following EBNF describes the disambiguated Lox grammar.
+                     * program        → statement* EOF ;
+                     * statement      → exprStmt | printStmt ;
+                     * exprStmt       → expression ";" ;
+                     * printStmt      → "print" expression ";" ;
                      * expression     → equality ;
                      * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
                      * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
