@@ -162,7 +162,7 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Checks whether the current <see cref="Token"/> matches any of the given <see cref="TokenType"/>s.
         /// </summary>
         /// <param name="types"></param>
         /// <returns></returns>
@@ -180,10 +180,10 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Checks if the current <see cref="Token"/> matches the given <see cref="TokenType"/>, and whether we are at the end.
         /// </summary>
         /// <param name="type"></param>
-        /// <returns></returns>
+        /// <returns><see langword="true"/> if the current token matches the given type. If we are at the end of the input, or it does not match, returns <see langword="false"/> instead.</returns>
         private bool Check(TokenType type)
         {
             if (IsAtEnd()) return false;
@@ -191,9 +191,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// As long as the Parser has not reached the end, advances to the next <see cref="Token"/>, returning it.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The current <see cref="Token"/>.</returns>
         private Token Advance()
         {
             if (!IsAtEnd()) Current++;
@@ -201,38 +201,39 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Checks if the current token is <see cref="TokenType.EOF"/>.
         /// </summary>
-        /// <returns></returns>
+        /// <returns><see langword="true"/> if the next token is <see cref="TokenType.EOF"/> else <see langword="false"/>.</returns>
         private bool IsAtEnd()
         {
             return Peek().Type == TokenType.EOF;
         }
 
         /// <summary>
-        /// 
+        /// Returns the current <see cref="Token"/> without consuming it.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The current <see cref="Token"/>.</returns>
         private Token Peek()
         {
             return Tokens.ElementAt(Current);
         }
 
         /// <summary>
-        /// 
+        /// Returns the previous <see cref="Token"/>.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The previous <see cref="Token"/>.</returns>
         private Token Previous()
         {
             return Tokens.ElementAt(Current - 1);
         }
 
         /// <summary>
-        /// 
+        /// Consumes a <see cref="Token"/> of the given <see cref="TokenType"/> otherwise throws an exception.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
+        /// <param name="type">A <see cref="TokenType"/> to check the current token against.</param>
+        /// <param name="message">A string containing an error message to display to the user in the case of a failure to consume the provided <see cref="TokenType"/>.</param>
+        /// <returns>The next <see cref="Token"/>.</returns>
+        /// <exception cref="ParseException">Thrown when the next <see cref="Token"/> does not match the provided <see cref="TokenType"/>.</exception>
         private Token Consume(TokenType type, string message)
         {
             if (Check(type)) return Advance();
@@ -241,11 +242,11 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Reports an error to the end user and creates an exception.
         /// </summary>
-        /// <param name="token"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
+        /// <param name="token">The <see cref="Token"/> where the error occurred.</param>
+        /// <param name="message">A string containing an error message to display to the user.</param>
+        /// <returns>A <see cref="ParseException"/> containing the given error message.</returns>
         private ParseException Error(Token token, string message)
         {
             CLI.Error(token, message);
@@ -253,7 +254,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Attempts to recover from a parse error by skipping ahead to look for the start of a new expression.
+        /// <para/>
+        /// This may fail in certain situations, but it's not strictly necessary to ensure this always works.
         /// </summary>
         private void Synchronize()
         {

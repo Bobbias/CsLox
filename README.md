@@ -4,7 +4,7 @@ CSLox is a C# implementation of the Lox programming language as detailed in the 
 
 # Progress
 
-Current progress corresponds with the end of Chapter 6: Parsing Expressions.
+Current progress corresponds with the end of Chapter 7: Evaluating Expressions.
 
 # Dependencies
 
