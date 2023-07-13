@@ -41,6 +41,7 @@ namespace CsLox
             var sb = new StringBuilder();
 
             sb.Append("(");
+            sb.Append(name);
             foreach (var expr in exprs)
             {
                 sb.Append($" {expr.Accept(this)}");
