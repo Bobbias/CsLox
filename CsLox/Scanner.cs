@@ -68,7 +68,7 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Checks the next input to see what kind of token to generate based on the current character.
         /// </summary>
         public void ScanToken()
         {
@@ -160,9 +160,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Returns the current character without consuming it.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The next character, or '\0' if there is none.</returns>
         private char Peek()
         {
             if (IsAtEnd()) return '\0';
@@ -170,9 +170,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Returns the next character without advancing or consuming it.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The next character, or '\0' if there is none.</returns>
         private char PeekNext()
         {
             if (current + 1 >= Source.Length) return '\0';
