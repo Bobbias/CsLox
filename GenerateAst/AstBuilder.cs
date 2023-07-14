@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,9 +9,15 @@ namespace GenerateAst
 {
     internal static class AstBuilder
     {
+        private static string GetSourceFilePathName([CallerFilePath] string? callerFilePath = null) => callerFilePath ?? "";
+
         public static void DefineAst(FileInfo outputFile, List<string> types)
         {
-            var finalPath = outputFile.FullName;
+            var solutionPath = Directory.GetParent(GetSourceFilePathName())!.Parent!.FullName;
+
+            Console.WriteLine($"GetSourceFilePathName: {solutionPath}");
+            
+            var finalPath = Path.Combine(solutionPath, "CsLox", outputFile.Name);
 
             var baseName = Path.GetFileNameWithoutExtension(outputFile.Name);
 
