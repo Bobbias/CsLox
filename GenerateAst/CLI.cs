@@ -24,6 +24,7 @@ namespace GenerateAst
             file = new FileInfo("Stmt.cs");
 
             AstBuilder.DefineAst(file, new List<string> {
+                "Block      : List<Stmt> stmts",
                 "Expression : Expr expr",
                 "Print      : Expr expr",
                 "Var        : Token name, Expr initializer"
