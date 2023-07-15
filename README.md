@@ -4,7 +4,7 @@ CSLox is a C# implementation of the Lox programming language as detailed in the 
 
 # Progress
 
-Current progress corresponds with the end of Chapter 7: Evaluating Expressions.
+Current progress corresponds with the end of Chapter 8: Statements and State.
 
 # Dependencies
 
@@ -13,6 +13,11 @@ This project depends on a couple Nuget packages:
 - ReadLine.Reboot
 - System.CommandLine
 - XConsole
+- nUnit
+
+# Known Issues
+
+Shadowing test fails, but the script executes properly outside of testing.
 
 # License
 
