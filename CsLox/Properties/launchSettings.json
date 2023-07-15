@@ -4,6 +4,11 @@
       "commandName": "Project",
       "commandLineArgs": "run prints.lox",
       "workingDirectory": "D:\\src\\CraftingInterpreters\\Tests\\Scripts"
+    },
+    "CsLox REPL": {
+      "commandName": "Project",
+      "commandLineArgs": "repl",
+      "workingDirectory": "D:\\src\\CraftingInterpreters\\Tests\\Scripts"
     }
   }
 }

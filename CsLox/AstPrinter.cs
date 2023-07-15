@@ -65,6 +65,26 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Prints a variable expression.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns>A string representing the given expression.</returns>
+        public string VisitVariableExpr(Expr.Variable expr)
+        {
+            return Parenthesize("var", expr);
+        }
+
+        /// <summary>
+        /// Prints an assignment expression.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns>A string representing the given expression.</returns>
+        public string VisitAssignExpr(Expr.Assign expr)
+        {
+            return Parenthesize("assign", expr);
+        }
+
+        /// <summary>
         /// Prints a parenthesized expression.
         /// </summary>
         /// <param name="name"></param>

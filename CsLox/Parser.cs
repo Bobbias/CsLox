@@ -41,7 +41,7 @@ namespace CsLox
             var statements = new List<Stmt>();
             while (!IsAtEnd())
             {
-                statements.Add(Statement());
+                statements.Add(Declaration());
             }
 
             return statements;
@@ -53,7 +53,22 @@ namespace CsLox
         /// <returns></returns>
         private Expr Expression()
         {
-            return Equality();
+            return Assignment();
+        }
+
+        private Stmt Declaration()
+        {
+            try
+            {
+                if (Match(TokenType.VAR)) return VarDeclaration();
+
+                return Statement();
+            }
+            catch (ParseException e)
+            {
+                Synchronize();
+                return null;
+            }
         }
 
         private Stmt Statement()
@@ -74,12 +89,53 @@ namespace CsLox
             return new Stmt.Print(value);
         }
 
+        private Stmt VarDeclaration()
+        {
+            var name = Consume(TokenType.IDENTIFIER, "Expected variable name.");
+
+            Expr initializer = null;
+            if (Match(TokenType.EQUAL))
+            {
+                initializer = Expression();
+            }
+
+            Consume(TokenType.SEMICOLON, "Expected ';' after variable declaration.");
+            return new Stmt.Var(name, initializer);
+        }
+
         private Stmt ExpressionStatement()
         {
             var expr = Expression();
             Consume(TokenType.SEMICOLON, "Expected ';' after expression.");
 
             return new Stmt.Expression(expr);
+        }
+
+        /// <summary>
+        /// assignment     → IDENTIFIER "=" assignment | equality ;
+        /// </summary>
+        /// <returns></returns>
+        private Expr Assignment()
+        {
+            var expr = Equality();
+
+            if(Match(TokenType.EQUAL))
+            {
+                var equals = Previous();
+                var value = Assignment();
+
+                if (expr is Expr.Variable)
+                {
+                    var name = ((Expr.Variable)expr).Name;
+                    return new Expr.Assign(name, value);
+                }
+
+                // Note: We report an error, but do not throw one here.
+                //       This is because the parser is not in an unknown state and there is no need to attempt to recover.
+                Error(equals, "Invalid assignment target.");
+            }
+
+            return expr;
         }
 
         /// <summary>
@@ -183,6 +239,11 @@ namespace CsLox
             if (Match(TokenType.NUMBER, TokenType.STRING))
             {
                 return new Expr.Literal(Previous().Literal);
+            }
+
+            if (Match(TokenType.IDENTIFIER))
+            {
+                return new Expr.Variable(Previous());
             }
 
             if (Match(TokenType.LEFT_PAREN))

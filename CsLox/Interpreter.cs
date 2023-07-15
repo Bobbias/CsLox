@@ -13,6 +13,8 @@ namespace CsLox
     //       in these situations.
     internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
+        private LoxEnvironment env = new LoxEnvironment();
+
         public object VisitBinaryExpr(Expr.Binary expr)
         {
             var left = Evaluate(expr.Left);
@@ -91,6 +93,11 @@ namespace CsLox
 
             // unreachable
             return null;
+        }
+
+        public object VisitVariableExpr(Expr.Variable expr)
+        {
+            return env.Get(expr.Name);
         }
 
         /// <summary>
@@ -190,6 +197,27 @@ namespace CsLox
             Console.WriteLine(Stringify(value));
 
             return null;
+        }
+
+        public object VisitVarStmt(Stmt.Var stmt)
+        {
+            object value = null;
+            if (stmt.Initializer != null)
+            {
+                value = Evaluate(stmt.Initializer);
+            }
+
+            env.Define(stmt.Name.Lexeme, value);
+            return null;
+        }
+
+        public object VisitAssignExpr(Expr.Assign expr)
+        {
+            var value = Evaluate(expr.Value);
+
+            env.Assign(expr.Name, value);
+
+            return value;
         }
     }
 }

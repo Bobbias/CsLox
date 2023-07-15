@@ -8,7 +8,8 @@ namespace CsLox
  * statement      → exprStmt | printStmt ;
  * exprStmt       → expression ";" ;
  * printStmt      → "print" expression ";" ;
- * expression     → equality ;
+ * expression     → assignment ;
+ * assignment     → IDENTIFIER "=" assignment | equality ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -24,6 +25,7 @@ namespace CsLox
         {
             T VisitExpressionStmt(Expression stmt);
             T VisitPrintStmt(Print stmt);
+            T VisitVarStmt(Var stmt);
         } // iVisitor<T>
 
         public class Expression : Stmt
@@ -59,6 +61,25 @@ namespace CsLox
             }
 
         } // Print
+
+        public class Var : Stmt
+        {
+            public Token Name { get; }
+            public Expr Initializer { get; }
+
+            public Var (Token name, Expr initializer)
+            {
+                Name = name;
+                Initializer = initializer;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitVarStmt(this);
+            }
+
+        } // Var
 
         public abstract T Accept<T>(IVisitor<T> visitor);
     } // Stmt

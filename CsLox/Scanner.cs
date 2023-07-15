@@ -17,6 +17,7 @@ namespace CsLox
     internal class Scanner
     {
         private static Dictionary<string, TokenType> Keywords { get; } = new Dictionary<string, TokenType>();
+        private static bool keywordsInitialized = false;
 
         private string Source { get; }
         private List<Token> Tokens { get; } = new List<Token>();
@@ -33,22 +34,27 @@ namespace CsLox
         {
             Source = source;
 
-            Keywords.Add("and", TokenType.AND);
-            Keywords.Add("class", TokenType.CLASS);
-            Keywords.Add("else", TokenType.ELSE);
-            Keywords.Add("false", TokenType.FALSE);
-            Keywords.Add("for", TokenType.FOR);
-            Keywords.Add("fun", TokenType.FUN);
-            Keywords.Add("if", TokenType.IF);
-            Keywords.Add("nil", TokenType.NIL);
-            Keywords.Add("or", TokenType.OR);
-            Keywords.Add("print", TokenType.PRINT);
-            Keywords.Add("return", TokenType.RETURN);
-            Keywords.Add("super", TokenType.SUPER);
-            Keywords.Add("this", TokenType.THIS);
-            Keywords.Add("true", TokenType.TRUE);
-            Keywords.Add("var", TokenType.VAR);
-            Keywords.Add("while", TokenType.WHILE);
+            if (!keywordsInitialized)
+            {
+                Keywords.Add("and", TokenType.AND);
+                Keywords.Add("class", TokenType.CLASS);
+                Keywords.Add("else", TokenType.ELSE);
+                Keywords.Add("false", TokenType.FALSE);
+                Keywords.Add("for", TokenType.FOR);
+                Keywords.Add("fun", TokenType.FUN);
+                Keywords.Add("if", TokenType.IF);
+                Keywords.Add("nil", TokenType.NIL);
+                Keywords.Add("or", TokenType.OR);
+                Keywords.Add("print", TokenType.PRINT);
+                Keywords.Add("return", TokenType.RETURN);
+                Keywords.Add("super", TokenType.SUPER);
+                Keywords.Add("this", TokenType.THIS);
+                Keywords.Add("true", TokenType.TRUE);
+                Keywords.Add("var", TokenType.VAR);
+                Keywords.Add("while", TokenType.WHILE);
+
+                keywordsInitialized = true;
+            }
         }
 
         /// <summary>
