@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.AccessControl;
 using System.Security.Claims;
 using System.Text;
@@ -77,6 +78,10 @@ namespace CsLox
             {
                 return PrintStatement();
             }
+            if (Match(TokenType.LEFT_BRACE))
+            {
+                return new Stmt.Block(Block());
+            }
 
             return ExpressionStatement();
         }
@@ -109,6 +114,19 @@ namespace CsLox
             Consume(TokenType.SEMICOLON, "Expected ';' after expression.");
 
             return new Stmt.Expression(expr);
+        }
+
+        private List<Stmt> Block()
+        {
+            var statements = new List<Stmt>();
+
+            while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+            {
+                statements.Add(Declaration());
+            }
+
+            Consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
+            return statements;
         }
 
         /// <summary>

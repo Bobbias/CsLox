@@ -134,6 +134,30 @@ namespace CsLox
             stmt.Accept(this);
         }
 
+        public object VisitBlockStmt(Stmt.Block stmt)
+        {
+            ExecuteBlock(stmt.Stmts, new LoxEnvironment(env));
+            return null;
+        }
+
+        private void ExecuteBlock(List<Stmt> stmts, LoxEnvironment env)
+        {
+            var previous = this.env;
+            try
+            {
+                this.env = env;
+
+                foreach (var stmt in stmts)
+                {
+                    Execute(stmt);
+                }
+            }
+            finally
+            {
+                this.env = previous;
+            }
+        }
+
         /// <summary>
         /// Determines whether a Lox object is truthy or falsey.
         /// </summary>

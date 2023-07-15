@@ -23,10 +23,28 @@ namespace CsLox
     {
         public interface IVisitor<T>
         {
+            T VisitBlockStmt(Block stmt);
             T VisitExpressionStmt(Expression stmt);
             T VisitPrintStmt(Print stmt);
             T VisitVarStmt(Var stmt);
         } // iVisitor<T>
+
+        public class Block : Stmt
+        {
+            public List<Stmt> Stmts { get; }
+
+            public Block (List<Stmt> stmts)
+            {
+                Stmts = stmts;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitBlockStmt(this);
+            }
+
+        } // Block
 
         public class Expression : Stmt
         {

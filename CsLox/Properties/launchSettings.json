@@ -9,6 +9,11 @@
       "commandName": "Project",
       "commandLineArgs": "repl",
       "workingDirectory": "D:\\src\\CraftingInterpreters\\Tests\\Scripts"
+    },
+    "CsLox Shadowing": {
+      "commandName": "Project",
+      "commandLineArgs": "run shadowing.lox",
+      "workingDirectory": "D:\\src\\CraftingInterpreters\\Tests\\Scripts"
     }
   }
 }
