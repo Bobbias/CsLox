@@ -26,6 +26,7 @@ namespace GenerateAst
             AstBuilder.DefineAst(file, new List<string> {
                 "Block      : List<Stmt> stmts",
                 "Expression : Expr expr",
+                "If         : Expr cond, Stmt thenBranch, Stmt? ElseBranch",
                 "Print      : Expr expr",
                 "Var        : Token name, Expr initializer"
             });
