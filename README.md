@@ -17,7 +17,7 @@ This project depends on a couple Nuget packages:
 
 # Known Issues
 
-Shadowing test fails, but the script executes properly outside of testing.
+None.
 
 # License
 
