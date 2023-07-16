@@ -5,8 +5,9 @@ namespace CsLox
 /*
  * The following EBNF describes the disambiguated Lox grammar.
  * program        → statement* EOF ;
- * statement      → exprStmt | printStmt ;
+ * statement      → exprStmt | ifStmt | printStmt | block ;
  * exprStmt       → expression ";" ;
+ * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
  * expression     → assignment ;
  * assignment     → IDENTIFIER "=" assignment | equality ;

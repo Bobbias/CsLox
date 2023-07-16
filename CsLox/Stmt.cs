@@ -5,8 +5,9 @@ namespace CsLox
 /*
  * The following EBNF describes the disambiguated Lox grammar.
  * program        → statement* EOF ;
- * statement      → exprStmt | printStmt ;
+ * statement      → exprStmt | ifStmt | printStmt | block ;
  * exprStmt       → expression ";" ;
+ * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
  * expression     → assignment ;
  * assignment     → IDENTIFIER "=" assignment | equality ;
@@ -25,6 +26,7 @@ namespace CsLox
         {
             T VisitBlockStmt(Block stmt);
             T VisitExpressionStmt(Expression stmt);
+            T VisitIfStmt(If stmt);
             T VisitPrintStmt(Print stmt);
             T VisitVarStmt(Var stmt);
         } // iVisitor<T>
@@ -62,6 +64,27 @@ namespace CsLox
             }
 
         } // Expression
+
+        public class If : Stmt
+        {
+            public Expr Cond { get; }
+            public Stmt ThenBranch { get; }
+            public Stmt? ElseBranch { get; }
+
+            public If (Expr cond, Stmt thenBranch, Stmt? ElseBranch)
+            {
+                Cond = cond;
+                ThenBranch = thenBranch;
+                ElseBranch = ElseBranch;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitIfStmt(this);
+            }
+
+        } // If
 
         public class Print : Stmt
         {

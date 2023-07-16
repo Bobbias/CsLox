@@ -220,6 +220,19 @@ namespace CsLox
             return null;
         }
 
+        public object VisitIfStmt(Stmt.If stmt)
+        {
+            if (IsTruthy(Evaluate(stmt.Cond)))
+            {
+                Execute(stmt.ThenBranch);
+            }
+            else if (stmt.ElseBranch != null)
+            {
+                Execute(stmt.ElseBranch);
+            }
+            return null;
+        }
+
         public object VisitPrintStmt(Stmt.Print stmt)
         {
             var value = Evaluate(stmt.Expr);
