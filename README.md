@@ -14,6 +14,7 @@ This project depends on a couple Nuget packages:
 - System.CommandLine
 - XConsole
 - nUnit
+- Sandcastle Help File Builder (for building documentation).
 
 # Known Issues
 

@@ -1,0 +1,227 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="ffc0f7db-9312-4c1c-9c88-cf9a44dedcdc" revisionNumber="1">
+  <developerConceptualDocument
+    xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <summary>
+      <para>A breakdown of the grammar of the Lox programming language.</para>
+    </summary>
+    
+    <introduction>
+      <autoOutline />
+
+      <para>Here we will examine the grammar of the Lox programming language as defined in Crafting Interpreters in its whole.</para>
+    </introduction>
+
+    <section address="FullGrammar">
+      <title>EBNF</title>
+      <content>
+        <alert>
+          <para>
+            This entire page is taken mostly verbatim from Crafting Interpreters: Appendix I.
+            However, the original page did not provide the full EBNF as a single code block, as presented here.
+            The remaining sections, titles, and exposition is taken verbatim from Crafting interpreters and is copyright Bob Nystrom.
+          </para>
+        </alert>
+        <para>Here is the entire EBNF grammar for Lox:</para>
+        <code language="none" title="Full Grammar EBNF">
+          program        → declaration* EOF ;
+
+          declaration    → classDecl
+                         | funDecl
+                         | varDecl
+                         | statement ;
+                         
+          classDecl      → "class" IDENTIFIER ( "&lt;" IDENTIFIER )?
+                           "{" function* "}" ;
+          funDecl        → "fun" function ;
+          varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+          
+          statement      → exprStmt
+                         | forStmt
+                         | ifStmt
+                         | printStmt
+                         | returnStmt
+                         | whileStmt
+                         | block ;
+
+          exprStmt       → expression ";" ;
+          forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                                     expression? ";"
+                                     expression? ")" statement ;
+          ifStmt         → "if" "(" expression ")" statement
+                           ( "else" statement )? ;
+          printStmt      → "print" expression ";" ;
+          returnStmt     → "return" expression? ";" ;
+          whileStmt      → "while" "(" expression ")" statement ;
+          block          → "{" declaration* "}" ;
+          
+          expression     → assignment ;
+
+          assignment     → ( call "." )? IDENTIFIER "=" assignment
+                         | logic_or ;
+
+          logic_or       → logic_and ( "or" logic_and )* ;
+          logic_and      → equality ( "and" equality )* ;
+          equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+          comparison     → term ( ( ">" | ">=" | "&lt;" | "&lt;=" ) term )* ;
+          term           → factor ( ( "-" | "+" ) factor )* ;
+          factor         → unary ( ( "/" | "*" ) unary )* ;
+
+          unary          → ( "!" | "-" ) unary | call ;
+          call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+          primary        → "true" | "false" | "nil" | "this"
+                         | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+                         | "super" "." IDENTIFIER ;
+                         
+          function       → IDENTIFIER "(" parameters? ")" block ;
+          parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+          arguments      → expression ( "," expression )* ;
+          
+          NUMBER         → DIGIT+ ( "." DIGIT+ )? ;
+          STRING         → "\"" &lt;any char except "\"">* "\"" ;
+          IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
+          ALPHA          → "a" ... "z" | "A" ... "Z" | "_" ;
+          DIGIT          → "0" ... "9" ;
+        </code>
+      </content>
+    </section>
+    <section address="Syntactic">
+      <title>Syntactic Grammar</title>
+      <content>
+        <para>
+          The syntactic grammar is used to parse the linear sequence of tokens into the nested syntax tree structure. It starts with the first rule that matches an entire Lox program (or a single REPL entry).
+        </para>
+      </content>
+      <sections>
+        <section>
+          <title>Declarations</title>
+          <content>
+            <para>
+              A program is a series of declarations, which are the statements that bind new identifiers or any of the other statement types.
+            </para>
+          </content>
+        </section>
+        <section>
+          <title>Statements</title>
+          <content>
+            <para>
+              The remaining statement rules produce side effects, but do not introduce bindings.
+            </para>
+            <code>
+              statement      → exprStmt
+                             | forStmt
+                             | ifStmt
+                             | printStmt
+                             | returnStmt
+                             | whileStmt
+                             | block ;
+
+              exprStmt       → expression ";" ;
+              forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                                         expression? ";"
+                                         expression? ")" statement ;
+              ifStmt         → "if" "(" expression ")" statement
+                                ( "else" statement )? ;
+              printStmt      → "print" expression ";" ;
+              returnStmt     → "return" expression? ";" ;
+              whileStmt      → "while" "(" expression ")" statement ;
+              block          → "{" declaration* "}" ;
+            </code>
+            <para>
+              Note that block is a statement rule, but is also used as a nonterminal in a couple of other rules for things like function bodies.
+            </para>
+          </content>
+        </section>
+        <section>
+          <title>Expressions</title>
+          <content>
+            <para>
+              Expressions produce values. Lox has a number of unary and binary operators with different levels of precedence.
+              Some grammars for languages do not directly encode the precedence relationships and specify that elsewhere.
+              Here, we use a separate rule for each precedence level to make it explicit.
+            </para>
+            <code>
+              expression     → assignment ;
+
+              assignment     → ( call "." )? IDENTIFIER "=" assignment
+                               | logic_or ;
+
+              logic_or       → logic_and ( "or" logic_and )* ;
+              logic_and      → equality ( "and" equality )* ;
+              equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+              comparison     → term ( ( ">" | ">=" | "&lt;" | "&lt;=" ) term )* ;
+              term           → factor ( ( "-" | "+" ) factor )* ;
+              factor         → unary ( ( "/" | "*" ) unary )* ;
+
+              unary          → ( "!" | "-" ) unary | call ;
+              call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+              primary        → "true" | "false" | "nil" | "this"
+                             | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+                             | "super" "." IDENTIFIER ;
+            </code>
+          </content>
+        </section>
+        <section>
+          <title>Utility Rules</title>
+          <content>
+            <para>
+              In order to keep the above rules a little cleaner, some of the grammar is split out into a few reused helper rules.
+            </para>
+            <code>
+              function       → IDENTIFIER "(" parameters? ")" block ;
+              parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+              arguments      → expression ( "," expression )* ;
+            </code>
+          </content>
+        </section>
+      </sections>
+    </section>
+    <section address="Lexical">
+      <title>Lexical Grammar</title>
+      <content>
+        <para>
+          The lexical grammar is used by the scanner to group characters into tokens. Where the syntax is <externalLink><linkText>context free</linkText><linkUri>https://en.wikipedia.org/wiki/Context-free_grammar</linkUri></externalLink>,
+          the lexical grammar is <externalLink><linkText>regular</linkText><linkUri>https://en.wikipedia.org/wiki/Regular_grammar</linkUri></externalLink> &#8212; note that there are no recursive rules.
+        </para>
+        <code language="none" title="Lexical Grammar">
+          NUMBER         → DIGIT+ ( "." DIGIT+ )? ;
+          STRING         → "\"" &lt;any char except "\"">* "\"" ;
+          IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
+          ALPHA          → "a" ... "z" | "A" ... "Z" | "_" ;
+          DIGIT          → "0" ... "9" ;
+        </code>
+      </content>
+    </section>
+
+    <relatedTopics>
+      <externalLink>
+        <linkText>Crafting Interpreters: Appendix I</linkText>
+        <linkAlternateText>Go to Crafting Interpreters: Appendix I</linkAlternateText>
+        <linkUri>https://craftinginterpreters.com/appendix-i.html</linkUri>
+      </externalLink>
+      <!-- One or more of the following:
+           - A local link
+           - An external link
+           - A code entity reference
+
+      <link xlink:href="Other Topic's ID"/>
+      <link xlink:href="Other Topic's ID">Link inner text</link>
+
+      <externalLink>
+          <linkText>Link text</linkText>
+          <linkAlternateText>Optional alternate link text</linkAlternateText>
+          <linkUri>URI</linkUri>
+      </externalLink>
+
+      <codeEntityReference>API member ID</codeEntityReference>
+
+      Examples:
+
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8270" />
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8278">Some other topic</link>
+      -->
+    </relatedTopics>
+  </developerConceptualDocument>
+</topic>

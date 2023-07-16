@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<topic id="06cf066b-b3cc-474e-a08f-64f50805405c" revisionNumber="1">
+	<developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<introduction>
+			<para>CsLox is a C# implementation of the Lox programming language as described in Crafting Interpreters.</para>
+		</introduction>
+
+		<section>
+			<title>Namespaces</title>
+      <content>
+        <list class="bullet">
+          <listItem>
+            <para>
+              <codeEntityReference>N:CsLox</codeEntityReference>
+            </para>
+          </listItem>
+          <listItem>
+            <para>
+              <codeEntityReference>N:GenerateAst</codeEntityReference>
+            </para>
+          </listItem>
+          <listItem>
+            <para>
+              <codeEntityReference>N:Tests</codeEntityReference>
+            </para>
+          </listItem>
+        </list>
+      </content>
+		</section>
+
+		<relatedTopics>
+      <!--
+      Add additional links down here when appropriate. Version history?
+      -->
+		</relatedTopics>
+	</developerConceptualDocument>
+</topic>
