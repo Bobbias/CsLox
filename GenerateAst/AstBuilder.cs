@@ -23,8 +23,8 @@ namespace GenerateAst
 
             using (var sr = new StreamWriter(finalPath))
             {
-                sr.WriteLine("using System;\n");
-                sr.WriteLine("namespace CsLox\n{");
+                sr.WriteLine($"using System;{Environment.NewLine}");
+                sr.WriteLine($"namespace CsLox{Environment.NewLine}{{");
 
                 sr.WriteLine("""
                     /*
@@ -34,7 +34,9 @@ namespace GenerateAst
                      * exprStmt       → expression ";" ;
                      * printStmt      → "print" expression ";" ;
                      * expression     → assignment ;
-                     * assignment     → IDENTIFIER "=" assignment | equality ;
+                     * assignment     → IDENTIFIER "=" assignment | logic_or ;
+                     * logic_or       → logic_and ( "or" logic_and )* ;
+                     * logic_and      → equality ( "and" equality )* ;
                      * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
                      * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
                      * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -46,7 +48,7 @@ namespace GenerateAst
                      */
                     """);
 
-                sr.WriteLine($"    abstract public class {baseName}\n    {{");
+                sr.WriteLine($"    abstract public class {baseName}{Environment.NewLine}    {{");
 
                 // Define visitor interface
                 DefineVisitor(sr, baseName, types);
@@ -67,7 +69,7 @@ namespace GenerateAst
 
         private static void DefineType(StreamWriter sr, string baseName, string className, string fieldList)
         {
-            sr.WriteLine($"        public class {className} : {baseName}\n        {{");
+            sr.WriteLine($"        public class {className} : {baseName}{Environment.NewLine}        {{");
 
             // fields
             var fields = fieldList.Split(", ");
@@ -80,7 +82,7 @@ namespace GenerateAst
 
             // ctor
             sr.WriteLine();
-            sr.WriteLine($"            public {className} ({fieldList})\n            {{");
+            sr.WriteLine($"            public {className} ({fieldList}){Environment.NewLine}            {{");
 
             // store parameters in fields
             foreach (var field in fields)
@@ -88,26 +90,26 @@ namespace GenerateAst
                 var name = field.Split(" ")[1];
                 sr.WriteLine($"                {name.FirstCharToUpper()} = {name};");
             }
-            sr.WriteLine("            }\n"); // ctor
+            sr.WriteLine($"            }}{Environment.NewLine}"); // ctor
             
             // accept function for visitor pattern
             sr.WriteLine();
-            sr.WriteLine("            public override T Accept<T>(IVisitor<T> visitor)\n            {");
+            sr.WriteLine($"            public override T Accept<T>(IVisitor<T> visitor){Environment.NewLine}            {{");
             sr.WriteLine($"                return visitor.Visit{className}{baseName}(this);");
-            sr.WriteLine("            }\n");
+            sr.WriteLine($"            }}{Environment.NewLine}");
 
-            sr.WriteLine($"        }} // {className}\n");  // class
+            sr.WriteLine($"        }} // {className}{Environment.NewLine}");  // class
         }
 
         private static void DefineVisitor(StreamWriter sr, string baseName, List<string> types)
         {
-            sr.WriteLine("        public interface IVisitor<T>\n        {");
+            sr.WriteLine($"        public interface IVisitor<T>{Environment.NewLine}        {{");
             foreach (var type in types)
             {
                 var typeName = type.Split(":")[0].Trim();
                 sr.WriteLine($"            T Visit{typeName}{baseName}({typeName} {baseName.ToLower()});");
             }
-            sr.WriteLine("        } // iVisitor<T>\n");
+            sr.WriteLine($"        }} // iVisitor<T>{Environment.NewLine}");
         }
     }
 }

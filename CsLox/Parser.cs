@@ -7,7 +7,6 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using static CsLox.Token;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 /*
  * program        → statement* EOF ;
@@ -27,16 +26,34 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CsLox
 {
+    /// <summary>
+    /// Implements a revursive descent parser for the Lox language.
+    /// </summary>
     internal class Parser
     {
+        /// <summary>
+        /// A list of tokens to parse.
+        /// </summary>
         private List<Token> Tokens { get; }
+
+        /// <summary>
+        /// The index of the current Token.
+        /// </summary>
         private int Current { get; set; } = 0;
 
+        /// <summary>
+        /// Constructs a Parser from a list of Tokens.
+        /// </summary>
+        /// <param name="tokens">The list of tokens to parse.</param>
         public Parser(List<Token> tokens)
         {
             Tokens = tokens;
         }
 
+        /// <summary>
+        /// Parses the tokens, and produces a list of statements.
+        /// </summary>
+        /// <returns>A list of <see cref="Stmt"/>.</returns>
         public List<Stmt> Parse()
         {
             var statements = new List<Stmt>();
@@ -51,12 +68,16 @@ namespace CsLox
         /// <summary>
         /// expression     → equality ;
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An <see cref="Expr"/>.</returns>
         private Expr Expression()
         {
             return Assignment();
         }
 
+        /// <summary>
+        /// Parses a variable declaration statement.
+        /// </summary>
+        /// <returns>A <see cref="Stmt"/>, or <see langword="null"/> if an error is encountered.</returns>
         private Stmt Declaration()
         {
             try
@@ -72,8 +93,16 @@ namespace CsLox
             }
         }
 
+        /// <summary>
+        /// Parses a statement.
+        /// </summary>
+        /// <returns>A <see cref="Stmt"/>.</returns>
         private Stmt Statement()
         {
+            if (Match(TokenType.FOR))
+            {
+                return ForStatement();
+            }
             if (Match(TokenType.IF))
             {
                 return IfStatement();
@@ -81,6 +110,10 @@ namespace CsLox
             if (Match(TokenType.PRINT))
             {
                 return PrintStatement();
+            }
+            if (Match(TokenType.WHILE))
+            {
+                return WhileStatement();
             }
             if (Match(TokenType.LEFT_BRACE))
             {
@@ -90,6 +123,73 @@ namespace CsLox
             return ExpressionStatement();
         }
 
+        private Stmt ForStatement()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.");
+
+            Stmt initializer;
+            if (Match(TokenType.SEMICOLON))
+            {
+                initializer = null;
+            }
+            else if(Match(TokenType.VAR))
+            {
+                initializer = VarDeclaration();
+            }
+            else
+            {
+                initializer = ExpressionStatement();
+            }
+
+            Expr cond = null;
+            if (!Check(TokenType.SEMICOLON))
+            {
+                cond = Expression();
+            }
+            Consume(TokenType.SEMICOLON, "Expected ';' after loop condition.");
+
+            Expr increment = null;
+            if(!Check(TokenType.RIGHT_PAREN))
+            {
+                increment = Expression();
+            }
+            Consume(TokenType.RIGHT_PAREN, "Expected ')' after for clauses.");
+
+            var body = Statement();
+
+            if (increment != null)
+            {
+                body = new Stmt.Block(
+                    new List<Stmt> {
+                        body,
+                        new Stmt.Expression(increment)
+                    }
+                );
+            }
+
+            if (cond == null)
+            {
+                cond = new Expr.Literal(true);
+            }
+            body = new Stmt.While(cond, body);
+
+            if (initializer != null)
+            {
+                body = new Stmt.Block(
+                    new List<Stmt> {
+                        initializer,
+                        body
+                    }
+                );
+            }
+
+            return body;
+        }
+
+        /// <summary>
+        /// Parses an if statement.
+        /// </summary>
+        /// <returns>A <see cref="Stmt"/>.</returns>
         private Stmt IfStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'.");
@@ -106,6 +206,10 @@ namespace CsLox
             return new Stmt.If(condition, thenBranch, elseBranch);
         }
 
+        /// <summary>
+        /// Parses a print statement.
+        /// </summary>
+        /// <returns>A <see cref="Stmt"/>.</returns>
         private Stmt PrintStatement()
         {
             var value = Expression();
@@ -114,6 +218,20 @@ namespace CsLox
             return new Stmt.Print(value);
         }
 
+        private Stmt WhileStatement()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'.");
+            var cond = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expected ')' after condition.");
+            var body = Statement();
+
+            return new Stmt.While(cond, body);
+        }
+
+        /// <summary>
+        /// Parses a variable declaration statement.
+        /// </summary>
+        /// <returns>A <see cref="Stmt"/>.</returns>
         private Stmt VarDeclaration()
         {
             var name = Consume(TokenType.IDENTIFIER, "Expected variable name.");
@@ -128,6 +246,10 @@ namespace CsLox
             return new Stmt.Var(name, initializer);
         }
 
+        /// <summary>
+        /// Parses an expression statement.
+        /// </summary>
+        /// <returns>A <see cref="Stmt"/></returns>
         private Stmt ExpressionStatement()
         {
             var expr = Expression();
@@ -136,6 +258,10 @@ namespace CsLox
             return new Stmt.Expression(expr);
         }
 
+        /// <summary>
+        /// Parses a block statement.
+        /// </summary>
+        /// <returns>A list of <see cref="Stmt"/>s.</returns>
         private List<Stmt> Block()
         {
             var statements = new List<Stmt>();
@@ -152,10 +278,10 @@ namespace CsLox
         /// <summary>
         /// assignment     → IDENTIFIER "=" assignment | equality ;
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A <see cref="Stmt"/>.</returns>
         private Expr Assignment()
         {
-            var expr = Equality();
+            var expr = Or();
 
             if(Match(TokenType.EQUAL))
             {
@@ -177,9 +303,45 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Parses an or expression.
+        /// </summary>
+        /// <returns>An <see cref="Expr"/>.</returns>
+        private Expr Or()
+        {
+            var expr = And();
+
+            while (Match(TokenType.OR))
+            {
+                var oper = Previous();
+                var right = And();
+                expr = new Expr.Logical(expr, oper, right);
+            }
+
+            return expr;
+        }
+
+        /// <summary>
+        /// Parses an and expression.
+        /// </summary>
+        /// <returns>An <see cref="Expr"/>.</returns>
+        private Expr And()
+        {
+            var expr = Equality();
+
+            while (Match(TokenType.AND))
+            {
+                var oper = Previous();
+                var right = Equality();
+                expr = new Expr.Logical(expr, oper, right);
+            }
+
+            return expr;
+        }
+
+        /// <summary>
         /// equality       → comparison ( ( "!=" | "==" ) comparison )* ;
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An <see cref="Expr"/>.</returns>
         private Expr Equality()
         {
             var expr = Comparison();
@@ -197,7 +359,7 @@ namespace CsLox
         /// <summary>
         /// comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An <see cref="Expr"/>.</returns>
         private Expr Comparison()
         {
             var expr = Term();
@@ -215,7 +377,7 @@ namespace CsLox
         /// <summary>
         /// term           → factor ( ( "-" | "+" ) factor )* ;
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An <see cref="Expr"/>.</returns>
         private Expr Term()
         {
             var expr = Factor();
@@ -233,7 +395,7 @@ namespace CsLox
         /// <summary>
         /// factor         → unary ( ( "/" | "*" ) unary )* ;
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An <see cref="Expr"/>.</returns>
         private Expr Factor()
         {
             var expr = Unary();
@@ -251,7 +413,7 @@ namespace CsLox
         /// <summary>
         /// unary          → ( "!" | "-" ) unary | primary ;
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An <see cref="Expr"/>.</returns>
         private Expr Unary()
         {
             if (Match(TokenType.BANG, TokenType.MINUS))
@@ -267,7 +429,7 @@ namespace CsLox
         /// <summary>
         /// primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An <see cref="Expr"/>.</returns>
         private Expr Primary()
         {
             if (Match(TokenType.FALSE)) return new Expr.Literal(false);
@@ -297,8 +459,8 @@ namespace CsLox
         /// <summary>
         /// Checks whether the current <see cref="Token"/> matches any of the given <see cref="TokenType"/>s.
         /// </summary>
-        /// <param name="types"></param>
-        /// <returns></returns>
+        /// <param name="types">Some number of <see cref="TokenType"/>s to match the current Token against.</param>
+        /// <returns><see langword="true"/> if any of the provided <see cref="TokenType"/>s match, otherwise <see langword="false"/>. Advances to the next Token if <see langword="true"/>.</returns>
         private bool Match(params TokenType[] types)
         {
             foreach (var type in types)

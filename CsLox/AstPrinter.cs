@@ -85,6 +85,17 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Prints a logical expression.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns>A string representing the given expression.</returns>
+        public string VisitLogicalExpr(Expr.Logical expr)
+        {
+            // Note: Consider expr.Oper.Type.ToString() instead of "logical"?
+            return Parenthesize("logical", expr);
+        }
+
+        /// <summary>
         /// Prints a parenthesized expression.
         /// </summary>
         /// <param name="name"></param>

@@ -5,12 +5,13 @@ namespace CsLox
 /*
  * The following EBNF describes the disambiguated Lox grammar.
  * program        → statement* EOF ;
- * statement      → exprStmt | ifStmt | printStmt | block ;
+ * statement      → exprStmt | printStmt ;
  * exprStmt       → expression ";" ;
- * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
  * expression     → assignment ;
- * assignment     → IDENTIFIER "=" assignment | equality ;
+ * assignment     → IDENTIFIER "=" assignment | logic_or ;
+ * logic_or       → logic_and ( "or" logic_and )* ;
+ * logic_and      → equality ( "and" equality )* ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -29,6 +30,7 @@ namespace CsLox
             T VisitIfStmt(If stmt);
             T VisitPrintStmt(Print stmt);
             T VisitVarStmt(Var stmt);
+            T VisitWhileStmt(While stmt);
         } // iVisitor<T>
 
         public class Block : Stmt
@@ -71,11 +73,11 @@ namespace CsLox
             public Stmt ThenBranch { get; }
             public Stmt? ElseBranch { get; }
 
-            public If (Expr cond, Stmt thenBranch, Stmt? ElseBranch)
+            public If (Expr cond, Stmt thenBranch, Stmt? elseBranch)
             {
                 Cond = cond;
                 ThenBranch = thenBranch;
-                ElseBranch = ElseBranch;
+                ElseBranch = elseBranch;
             }
 
 
@@ -121,6 +123,25 @@ namespace CsLox
             }
 
         } // Var
+
+        public class While : Stmt
+        {
+            public Expr Cond { get; }
+            public Stmt Body { get; }
+
+            public While (Expr cond, Stmt body)
+            {
+                Cond = cond;
+                Body = body;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitWhileStmt(this);
+            }
+
+        } // While
 
         public abstract T Accept<T>(IVisitor<T> visitor);
     } // Stmt

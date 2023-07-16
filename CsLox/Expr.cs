@@ -5,12 +5,13 @@ namespace CsLox
 /*
  * The following EBNF describes the disambiguated Lox grammar.
  * program        → statement* EOF ;
- * statement      → exprStmt | ifStmt | printStmt | block ;
+ * statement      → exprStmt | printStmt ;
  * exprStmt       → expression ";" ;
- * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
  * expression     → assignment ;
- * assignment     → IDENTIFIER "=" assignment | equality ;
+ * assignment     → IDENTIFIER "=" assignment | logic_or ;
+ * logic_or       → logic_and ( "or" logic_and )* ;
+ * logic_and      → equality ( "and" equality )* ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -28,6 +29,7 @@ namespace CsLox
             T VisitBinaryExpr(Binary expr);
             T VisitGroupingExpr(Grouping expr);
             T VisitLiteralExpr(Literal expr);
+            T VisitLogicalExpr(Logical expr);
             T VisitUnaryExpr(Unary expr);
             T VisitVariableExpr(Variable expr);
         } // iVisitor<T>
@@ -105,6 +107,27 @@ namespace CsLox
             }
 
         } // Literal
+
+        public class Logical : Expr
+        {
+            public Expr Left { get; }
+            public Token Oper { get; }
+            public Expr Right { get; }
+
+            public Logical (Expr left, Token oper, Expr right)
+            {
+                Left = left;
+                Oper = oper;
+                Right = right;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitLogicalExpr(this);
+            }
+
+        } // Logical
 
         public class Unary : Expr
         {

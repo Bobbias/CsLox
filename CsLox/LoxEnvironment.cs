@@ -69,7 +69,7 @@ namespace CsLox
         {
             if (Values.ContainsKey(name.Lexeme))
             {
-                Values.Add(name.Lexeme, value);
+                Values[name.Lexeme] = value;
                 return;
             }
 

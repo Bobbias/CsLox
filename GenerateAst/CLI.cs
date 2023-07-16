@@ -17,6 +17,7 @@ namespace GenerateAst
                 "Binary   : Expr left, Token oper, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : object? value",
+                "Logical  : Expr left, Token oper, Expr right",
                 "Unary    : Token oper, Expr right",
                 "Variable : Token name"
             });
@@ -26,9 +27,10 @@ namespace GenerateAst
             AstBuilder.DefineAst(file, new List<string> {
                 "Block      : List<Stmt> stmts",
                 "Expression : Expr expr",
-                "If         : Expr cond, Stmt thenBranch, Stmt? ElseBranch",
+                "If         : Expr cond, Stmt thenBranch, Stmt? elseBranch",
                 "Print      : Expr expr",
-                "Var        : Token name, Expr initializer"
+                "Var        : Token name, Expr initializer",
+                "While      : Expr cond, Stmt body"
             });
         }
     }

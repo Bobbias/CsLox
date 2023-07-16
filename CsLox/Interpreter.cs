@@ -6,20 +6,39 @@ using System.Threading.Tasks;
 
 namespace CsLox
 {
-    // Note: Stmt.IVisitor<object> should actually be Stmt.IVisitor<void>, but that is not possible in c#.
-    //       Instead what we have to do is create a dummy return type (in this case, object) and return
-    //       dummy values from our Visit functions (in this case null).
-    //       This would be cleaner in either F# or any language that has Unit, or Void as a usable type
-    //       in these situations.
+    /// <summary>
+    /// The interpreter for CsLox. 
+    /// <para/>
+    /// This class implements the <see href="https://en.wikipedia.org/wiki/Visitor_pattern">visitor pattern</see> for expressions and statements,
+    /// determining how statements and expressions are evaluated.
+    /// </summary>
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
+        /// <summary>
+        /// The current scope the interpreter is operating in.
+        /// </summary>
         private LoxEnvironment env = new LoxEnvironment();
 
+        /// <summary>
+        /// Clears all variables in the current <see cref="LoxEnvironment"/>.
+        /// <para/>
+        /// This is useful for testing. Since the interpreter is a static object, it only one instance lives for the lifetime of the application.
+        /// This is problematic when running tests, since it causes state to leak from one test to subsequent tests. To avoid that, this function
+        /// should be called as part of the SetUp before each test to ensure that any existing state is cleaned up between tests.
+        /// </summary>
         public void ClearEnvironment()
         {
             env.Clear();
         }
 
+        /// <summary>
+        /// Evaluates a given <see cref="Expr.Binary"/>. The operands are evaluated left to right.
+        /// <para/>
+        /// When evaluating <see langword="+"/>, both operands must be either numbers, or strings. If this condition is not met, then an exception is thrown.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns>The result of evaluating the given <see cref="Expr.Binary"/> operation as an <see langword="object"/>.</returns>
+        /// <exception cref="CsLoxRuntimeException">Throws an exception if the operands to the <see langword="+"/> operation are unacceptable.</exception>
         public object VisitBinaryExpr(Expr.Binary expr)
         {
             var left = Evaluate(expr.Left);
@@ -71,16 +90,52 @@ namespace CsLox
             return null;
         }
 
+        /// <summary>
+        /// Evaluates a grouping (parenthesized) expression <paramref name="expr"/>.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns>An <see langword="object"/> representing the result of evaluating <paramref name="expr"/>.</returns>
         public object VisitGroupingExpr(Expr.Grouping expr)
         {
             return Evaluate(expr.Expression);
         }
 
+        /// <summary>
+        /// Evaluates the literal <paramref name="expr"/> and returns the result as an <see langword="object"/>.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns>An <see langword="object"/> representing value <paramref name="expr"/>.</returns>
         public object VisitLiteralExpr(Expr.Literal expr)
         {
             return expr.Value!;
         }
 
+        /// <summary>
+        /// Evaluates a logical expression. Short circuits, returning the left hand side of an <see langword="or"/> expression if it is truthy, and the right side if not.
+        /// </summary>
+        /// <param name="expr">The logical expression to evaluate.</param>
+        /// <returns>An <see langword="object"/> with the required truthiness.</returns>
+        public object VisitLogicalExpr(Expr.Logical expr)
+        {
+            object left = Evaluate(expr.Left);
+
+            if (expr.Oper.Type == Token.TokenType.OR)
+            {
+                if (IsTruthy(left)) return left;
+            }
+            else
+            {
+                if (!IsTruthy(left)) return left;
+            }
+
+            return Evaluate(expr.Right);
+        }
+
+        /// <summary>
+        /// Evaluates the unary experssion <paramref name="expr"/> and returns the result as an <see langword="object"/>.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
         public object VisitUnaryExpr(Expr.Unary expr)
         {
             var right = Evaluate(expr.Right);
@@ -100,15 +155,20 @@ namespace CsLox
             return null;
         }
 
+        /// <summary>
+        /// Evaluates the variable reference <paramref name="expr"/> and returns the result as an <see langword="object"/>.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
         public object VisitVariableExpr(Expr.Variable expr)
         {
             return env.Get(expr.Name);
         }
 
         /// <summary>
-        /// Interpret a Lox expression.
+        /// Evaluates the Lox source in <paramref name="statements"/>.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="statements">A list of Lox statements to be interpreted.</param>
         public void Interpret(List<Stmt> statements)
         {
             try
@@ -125,7 +185,7 @@ namespace CsLox
         }
 
         /// <summary>
-        /// Evaluate a given Lox expression.
+        /// Evaluates the expression <paramref name="expr"/>.
         /// </summary>
         /// <param name="expr">An expression to evaluate.</param>
         /// <returns>An <see langword="object"/> containing the result of evaluating expr.</returns>
@@ -134,17 +194,35 @@ namespace CsLox
             return expr.Accept(this);
         }
 
+        /// <summary>
+        /// Executes the statement <paramref name="stmt"/>.
+        /// </summary>
+        /// <remarks>
+        /// This function calls <see cref="Stmt.Accept{T}(Stmt.IVisitor{T})"/> but throws away the resulting object, because the resulting object is guaranteed to be null.
+        /// </remarks>
+        /// <param name="stmt">The statement to execute.</param>
         private void Execute(Stmt stmt)
         {
             stmt.Accept(this);
         }
 
+        /// <summary>
+        /// Executes the statements inside <paramref name="stmt"/> in a new environment.
+        /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns></returns>
         public object VisitBlockStmt(Stmt.Block stmt)
         {
             ExecuteBlock(stmt.Stmts, new LoxEnvironment(env));
             return null;
         }
 
+        /// <summary>
+        /// Executes a list of statements in a new environment as supplied in <paramref name="env"/>. Restores the previous
+        /// environment after execution of the block is finished.
+        /// </summary>
+        /// <param name="stmts"></param>
+        /// <param name="env"></param>
         private void ExecuteBlock(List<Stmt> stmts, LoxEnvironment env)
         {
             var previous = this.env;
@@ -189,18 +267,45 @@ namespace CsLox
             return left.Equals(right);
         }
 
+        /// <summary>
+        /// Determines whether <paramref name="operand"/> is a number. Lox represents all numbers as <see langword="double"/>s.
+        /// <para/>
+        /// Throws an exception if <paramref name="operand"/> is not a <see langword="double"/>.
+        /// <seealso cref="CheckNumberOperands(Token, object, object)"/>
+        /// </summary>
+        /// <param name="oper">The token, to be used in the case that an error is thrown.</param>
+        /// <param name="operand">The operand to be checked.</param>
+        /// <exception cref="CsLoxRuntimeException"></exception>
         private void CheckNumberOperand(Token oper, object operand)
         {
             if (operand is double) return;
             throw new CsLoxRuntimeException(oper, "Operand must be a number.");
         }
 
+        /// <summary>
+        /// Determines whether <paramref name="left"/> and <paramref name="right"/> are both numbers. Lox represents all numbers as <see langword="double"/>s.
+        /// <para/>
+        /// Throws an exception if either <paramref name="left"/> or <paramref name="right"/> are not <see langword="double"/>s.
+        /// <seealso cref="CheckNumberOperand(Token, object)"/>
+        /// </summary>
+        /// <param name="oper">The token, to be used in the case that an error is thrown.</param>
+        /// <param name="left">An operand to be checked.</param>
+        /// <param name="right">An operand to be checked.</param>
+        /// <exception cref="CsLoxRuntimeException"></exception>
         private void CheckNumberOperands(Token oper, object left, object right)
         {
             if (left is double && right is double) return;
             throw new CsLoxRuntimeException(oper, "Operands must be numbers.");
         }
 
+        /// <summary>
+        /// Handles string conversion for Lox objects.
+        /// <para/>
+        /// Handles number conversion specially, as any number that is an integer should be represented without a decimal point.
+        /// All other numbers should be represented as floating point numbers.
+        /// </summary>
+        /// <param name="obj">The <see langword="object"/> to be converted.</param>
+        /// <returns><paramref name="obj"/>.ToString() except in the case of numbers. Represents <see langword="null"/> as <see langword="nil"/>.</returns>
         private string Stringify(object obj)
         {
             if (obj == null) return "nil";
@@ -213,6 +318,13 @@ namespace CsLox
             return obj.ToString() ?? "nil";
         }
 
+        /// <summary>
+        /// Evaluates <paramref name="stmt"/> as a statement.
+        /// <para/>
+        /// All statements return <see langword="null"/> because there is no way to define a generic with a void return type.
+        /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns><see langword="null"/>.</returns>
         public object VisitExpressionStmt(Stmt.Expression stmt)
         {
             Evaluate(stmt.Expr);
@@ -220,6 +332,13 @@ namespace CsLox
             return null;
         }
 
+        /// <summary>
+        /// Evaluates <paramref name="stmt"/>.
+        /// <para/>
+        /// All statements return <see langword="null"/> because there is no way to define a generic with a void return type.
+        /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns><see langword="null"/>.</returns>
         public object VisitIfStmt(Stmt.If stmt)
         {
             if (IsTruthy(Evaluate(stmt.Cond)))
@@ -233,6 +352,11 @@ namespace CsLox
             return null;
         }
 
+        /// <summary>
+        /// Evaluates <paramref name="stmt"/> and prints the result.
+        /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns><see langword="null"/>.</returns>
         public object VisitPrintStmt(Stmt.Print stmt)
         {
             var value = Evaluate(stmt.Expr);
@@ -241,6 +365,11 @@ namespace CsLox
             return null;
         }
 
+        /// <summary>
+        /// Evaluates <paramref name="stmt"/> and defines the variable named by it.
+        /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns><see langword="null"/>.</returns>
         public object VisitVarStmt(Stmt.Var stmt)
         {
             object value = null;
@@ -253,6 +382,26 @@ namespace CsLox
             return null;
         }
 
+        /// <summary>
+        /// Evaluates <paramref name="stmt"/>.
+        /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns><see langword="null"/>.</returns>
+        public object VisitWhileStmt(Stmt.While stmt)
+        {
+            while (IsTruthy(Evaluate(stmt.Cond)))
+            {
+                Execute(stmt.Body);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Evaluates <paramref name="expr"/>.
+        /// </summary>
+        /// <param name="expr">The assignment expression to evaluate.</param>
+        /// <returns>the value assigned to <see cref="Expr.Assign.Name"/>.</returns>
         public object VisitAssignExpr(Expr.Assign expr)
         {
             var value = Evaluate(expr.Value);
