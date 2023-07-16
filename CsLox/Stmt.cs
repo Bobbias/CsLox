@@ -19,7 +19,7 @@ namespace CsLox
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")" ;
  */
-    abstract internal class Stmt
+    abstract public class Stmt
     {
         public interface IVisitor<T>
         {

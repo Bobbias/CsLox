@@ -46,7 +46,7 @@ namespace GenerateAst
                      */
                     """);
 
-                sr.WriteLine($"    abstract internal class {baseName}\n    {{");
+                sr.WriteLine($"    abstract public class {baseName}\n    {{");
 
                 // Define visitor interface
                 DefineVisitor(sr, baseName, types);

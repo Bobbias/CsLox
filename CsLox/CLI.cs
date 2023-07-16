@@ -33,7 +33,7 @@ namespace CsLox
         /// By making this instance static, we ensure that state is preserved between calls. This is important for the REPL to function properly.
         /// </para>
         /// </summary>
-        private static Interpreter Interpreter { get; } = new Interpreter();
+        public static Interpreter Interpreter { get; } = new Interpreter();
 
         /// <summary>
         /// Exit codes defined in <see href="https://man.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html">sysexit.h</see>.

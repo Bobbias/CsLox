@@ -11,9 +11,14 @@ namespace CsLox
     //       dummy values from our Visit functions (in this case null).
     //       This would be cleaner in either F# or any language that has Unit, or Void as a usable type
     //       in these situations.
-    internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
+    public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         private LoxEnvironment env = new LoxEnvironment();
+
+        public void ClearEnvironment()
+        {
+            env.Clear();
+        }
 
         public object VisitBinaryExpr(Expr.Binary expr)
         {

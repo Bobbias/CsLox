@@ -19,7 +19,7 @@ namespace CsLox
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")" ;
  */
-    abstract internal class Expr
+    abstract public class Expr
     {
         public interface IVisitor<T>
         {

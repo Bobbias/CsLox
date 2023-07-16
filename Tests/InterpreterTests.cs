@@ -6,13 +6,18 @@ namespace Tests
         private string variablesSource;
         private string shadowingSource;
 
-        [SetUp]
-        public void Setup()
+        [OneTimeSetUp]
+        public void SetupFiles()
         {
-
             printsSource = FixtureFileLoader.LoadFileToString("Scripts", "prints.lox");
             variablesSource = FixtureFileLoader.LoadFileToString("Scripts", "variables.lox");
             shadowingSource = FixtureFileLoader.LoadFileToString("Scripts", "shadowing.lox");
+        }
+
+        [SetUp]
+        public void BeforeEach()
+        {
+            CLI.Interpreter.ClearEnvironment();
         }
 
         [Test]
