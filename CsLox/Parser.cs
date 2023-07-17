@@ -423,7 +423,60 @@ namespace CsLox
                 return new Expr.Unary(oper, right);
             }
 
-            return Primary();
+            return Call();
+        }
+
+        /// <summary>
+        /// call           → primary ( "(" arguments? ")" )* ;
+        /// </summary>
+        /// <returns>An <see cref="Expr"/>.</returns>
+        private Expr Call()
+        {
+            var expr = Primary();
+
+            while (true)
+            {
+                if (Match(TokenType.LEFT_PAREN))
+                {
+                    expr = FinishCall(expr);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return expr;
+        }
+
+        /// <summary>
+        /// Utility function to handle parsing the argument list.
+        /// </summary>
+        /// <param name="callee"></param>
+        /// <returns>
+        /// An <see cref="Expr.Call"/> containing the callee passed from <see cref="Call"/>,
+        /// the closing parenthesis for error reporting, and the argument list.
+        /// </returns>
+        private Expr FinishCall(Expr callee)
+        {
+            var args = new List<Expr>();
+
+            if (!Check(TokenType.RIGHT_PAREN))
+            {
+                do
+                {
+                    if(args.Count >= 255)
+                    {
+                        // FIXME: Does this need to throw?
+                        Error(Peek(), "Can't have more than 255 arguments.");
+                    }
+                    args.Add(Expression());
+                } while (Match(TokenType.COMMA));
+            }
+
+            var paren = Consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments.");
+
+            return new Expr.Call(callee, paren, args);
         }
 
         /// <summary>

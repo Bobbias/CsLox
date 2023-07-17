@@ -91,6 +91,37 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Evaluates a function call expression.
+        /// </summary>
+        /// <param name="expr">the expression being called.</param>
+        /// <returns>An <see langword="object"/> representing the return value of the function call.</returns>
+        /// <exception cref="CsLoxRuntimeException">Throws a runtime exception if the expression being called is neither a function nor a class.</exception>
+        public object VisitCallExpr(Expr.Call expr)
+        {
+            var callee = Evaluate(expr.Callee);
+
+            var args = new List<object>();
+            foreach (var arg in expr.Args)
+            {
+                args.Add(Evaluate(arg));
+            }
+
+            if(callee is not ILoxCallable)
+            {
+                throw new CsLoxRuntimeException(expr.Paren, "Can only call functions and classes.");
+            }
+
+            ILoxCallable fun = (ILoxCallable)callee;
+
+            if (args.Count != fun.Arity)
+            {
+                throw new CsLoxRuntimeException(expr.Paren, $"Expected {fun.Arity} arguments but got {args.Count}.");
+            }
+
+            return fun.Call(this, args);
+        }
+
+        /// <summary>
         /// Evaluates a grouping (parenthesized) expression <paramref name="expr"/>.
         /// </summary>
         /// <param name="expr"></param>
