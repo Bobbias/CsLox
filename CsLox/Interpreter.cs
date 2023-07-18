@@ -14,10 +14,26 @@ namespace CsLox
     /// </summary>
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
+
+        private readonly LoxEnvironment globals = new LoxEnvironment();
+
         /// <summary>
         /// The current scope the interpreter is operating in.
         /// </summary>
+        /// <remarks>
+        /// Env should be initialized to <see cref="Interpreter.globals"/> but since that would require globals to be static, it is initialized to
+        /// an empty environment, then assigned to globals later when the interpreter is constructed.
+        /// </remarks>
         private LoxEnvironment env = new LoxEnvironment();
+
+        /// <summary>
+        /// Constructs an interpreter.
+        /// </summary>
+        public Interpreter()
+        {
+            globals.Define("clock", new NativeFns.Clock());
+            env = globals;
+        }
 
         /// <summary>
         /// Clears all variables in the current <see cref="LoxEnvironment"/>.
