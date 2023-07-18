@@ -14,7 +14,7 @@ namespace CsLox
         /// <summary>
         /// The number of arguments the callable takes.
         /// </summary>
-        public int Arity { get; protected set; }
+        public int Arity { get; }
 
         /// <summary>
         /// Performs a function call.

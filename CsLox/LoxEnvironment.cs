@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CsLox
 {
-    internal class LoxEnvironment
+    public class LoxEnvironment
     {
         public LoxEnvironment? Enclosing { get; private set; }
         private Dictionary<string, object> Values { get; } = new Dictionary<string, object>();

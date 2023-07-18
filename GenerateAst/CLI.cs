@@ -28,8 +28,10 @@ namespace GenerateAst
             AstBuilder.DefineAst(file, new List<string> {
                 "Block      : List<Stmt> stmts",
                 "Expression : Expr expr",
+                "Function   : Token name, List<Token> parameters, List<Stmt> body",
                 "If         : Expr cond, Stmt thenBranch, Stmt? elseBranch",
                 "Print      : Expr expr",
+                "Return     : Token keyword, Expr value",
                 "Var        : Token name, Expr initializer",
                 "While      : Expr cond, Stmt body"
             });

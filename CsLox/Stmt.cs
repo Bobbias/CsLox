@@ -27,8 +27,10 @@ namespace CsLox
         {
             T VisitBlockStmt(Block stmt);
             T VisitExpressionStmt(Expression stmt);
+            T VisitFunctionStmt(Function stmt);
             T VisitIfStmt(If stmt);
             T VisitPrintStmt(Print stmt);
+            T VisitReturnStmt(Return stmt);
             T VisitVarStmt(Var stmt);
             T VisitWhileStmt(While stmt);
         } // iVisitor<T>
@@ -67,6 +69,27 @@ namespace CsLox
 
         } // Expression
 
+        public class Function : Stmt
+        {
+            public Token Name { get; }
+            public List<Token> Parameters { get; }
+            public List<Stmt> Body { get; }
+
+            public Function (Token name, List<Token> parameters, List<Stmt> body)
+            {
+                Name = name;
+                Parameters = parameters;
+                Body = body;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitFunctionStmt(this);
+            }
+
+        } // Function
+
         public class If : Stmt
         {
             public Expr Cond { get; }
@@ -104,6 +127,25 @@ namespace CsLox
             }
 
         } // Print
+
+        public class Return : Stmt
+        {
+            public Token Keyword { get; }
+            public Expr Value { get; }
+
+            public Return (Token keyword, Expr value)
+            {
+                Keyword = keyword;
+                Value = value;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitReturnStmt(this);
+            }
+
+        } // Return
 
         public class Var : Stmt
         {

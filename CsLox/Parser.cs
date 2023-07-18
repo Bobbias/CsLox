@@ -82,6 +82,7 @@ namespace CsLox
         {
             try
             {
+                if (Match(TokenType.FUN)) return Function("function");
                 if (Match(TokenType.VAR)) return VarDeclaration();
 
                 return Statement();
@@ -111,6 +112,10 @@ namespace CsLox
             {
                 return PrintStatement();
             }
+            if (Match(TokenType.RETURN))
+            {
+                return ReturnStatement();
+            }
             if (Match(TokenType.WHILE))
             {
                 return WhileStatement();
@@ -123,6 +128,13 @@ namespace CsLox
             return ExpressionStatement();
         }
 
+        /// <summary>
+        /// Parses a for statement.
+        /// </summary>
+        /// <remarks>
+        /// The parser here desugars for loops into while loops.
+        /// </remarks>
+        /// <returns>A <see cref="Stmt.While"/>.</returns>
         private Stmt ForStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.");
@@ -189,7 +201,7 @@ namespace CsLox
         /// <summary>
         /// Parses an if statement.
         /// </summary>
-        /// <returns>A <see cref="Stmt"/>.</returns>
+        /// <returns>A <see cref="Stmt.If"/>.</returns>
         private Stmt IfStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'.");
@@ -209,7 +221,7 @@ namespace CsLox
         /// <summary>
         /// Parses a print statement.
         /// </summary>
-        /// <returns>A <see cref="Stmt"/>.</returns>
+        /// <returns>A <see cref="Stmt.Print"/>.</returns>
         private Stmt PrintStatement()
         {
             var value = Expression();
@@ -218,6 +230,27 @@ namespace CsLox
             return new Stmt.Print(value);
         }
 
+        /// <summary>
+        /// Parses a return statement.
+        /// </summary>
+        /// <returns>A <see cref="Stmt.Return"/>.</returns>
+        private Stmt ReturnStatement()
+        {
+            var keyword = Previous();
+            Expr value = null;
+            if(!Check(TokenType.SEMICOLON))
+            {
+                value = Expression();
+            }
+
+            Consume(TokenType.SEMICOLON, "Expected ';' after return value.");
+            return new Stmt.Return(keyword, value);
+        }
+
+        /// <summary>
+        /// Parses a while statement.
+        /// </summary>
+        /// <returns>A <see cref="Stmt.While"/>.</returns>
         private Stmt WhileStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'.");
@@ -256,6 +289,31 @@ namespace CsLox
             Consume(TokenType.SEMICOLON, "Expected ';' after expression.");
 
             return new Stmt.Expression(expr);
+        }
+
+        private Stmt.Function Function(string kind)
+        {
+            var name = Consume(TokenType.IDENTIFIER, $"Expected {kind} name.");
+            Consume(TokenType.LEFT_PAREN, $"Expected '(' after {kind} name.");
+            var parameters = new List<Token>();
+            if (!Check(TokenType.RIGHT_PAREN))
+            {
+                do
+                {
+                    if (parameters.Count >= 255)
+                    {
+                        // FIXME: does this need to throw?
+                        Error(Peek(), "Can't have more than 255 parameters.");
+                    }
+
+                    parameters.Add(Consume(TokenType.IDENTIFIER, "Expected parameter name."));
+                } while (Match(TokenType.COMMA));
+            }
+            Consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters");
+
+            Consume(TokenType.LEFT_BRACE, $"Expected '}}' before {kind} body.");
+            var body = Block();
+            return new Stmt.Function(name, parameters, body);
         }
 
         /// <summary>

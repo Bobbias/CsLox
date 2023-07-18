@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace CsLox
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
 
-        private readonly LoxEnvironment globals = new LoxEnvironment();
+        internal readonly LoxEnvironment globals = new LoxEnvironment();
 
         /// <summary>
         /// The current scope the interpreter is operating in.
@@ -270,7 +271,7 @@ namespace CsLox
         /// </summary>
         /// <param name="stmts"></param>
         /// <param name="env"></param>
-        private void ExecuteBlock(List<Stmt> stmts, LoxEnvironment env)
+        internal void ExecuteBlock(List<Stmt> stmts, LoxEnvironment env)
         {
             var previous = this.env;
             try
@@ -380,6 +381,19 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Evaluates <paramref name="stmt"/>, defining the given function in the current environment.
+        /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns><see langword="null"/>.</returns>
+        public object VisitFunctionStmt(Stmt.Function stmt)
+        {
+            var function = new LoxFunction(stmt, env);
+            env.Define(stmt.Name.Lexeme, function);
+            
+            return null;
+        }
+
+        /// <summary>
         /// Evaluates <paramref name="stmt"/>.
         /// <para/>
         /// All statements return <see langword="null"/> because there is no way to define a generic with a void return type.
@@ -410,6 +424,26 @@ namespace CsLox
             Console.WriteLine(Stringify(value));
 
             return null;
+        }
+
+        /// <summary>
+        /// Evaluates a return statement. It does this by evaluating the expression supplied, if any, and then throwing a
+        /// <see cref="Return"/> exception to escape the current call stack and bubble the return value up to the function
+        /// call site.
+        /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns>Never.</returns>
+        /// <exception cref="Return">Throws a custom exception.</exception>
+        [DoesNotReturn]
+        public object VisitReturnStmt(Stmt.Return stmt)
+        {
+            object value = null;
+            if (stmt.Value != null)
+            {
+                value = Evaluate(stmt.Value);
+            }
+
+            throw new Return(value);
         }
 
         /// <summary>
