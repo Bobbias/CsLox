@@ -10,11 +10,11 @@ Current progress corresponds with the end of Chapter 10: Functions.
 
 This project depends on a couple Nuget packages:
 
-- ReadLine.Reboot
-- System.CommandLine
-- XConsole
-- nUnit
-- Sandcastle Help File Builder (for building documentation).
+- [ReadLine.Reboot](https://www.nuget.org/packages/ReadLine.Reboot)
+- [System.CommandLine](https://www.nuget.org/packages/System.CommandLine)
+- [XConsole](https://www.nuget.org/packages/XConsole)
+- [nUnit](https://www.nuget.org/packages/NUnit)
+- [Sandcastle Help File Builder](https://github.com/EWSoftware/SHFB) (for building documentation).
 
 # Known Issues
 
