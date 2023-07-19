@@ -231,7 +231,7 @@ namespace CsLox
         /// <param name="literal">An <see cref="object"/> representing a literal value.</param>
         private void AddToken(TokenType type, object? literal)
         {
-            var text = Source.Substring(start, current - start);
+            var text = Source[start..current];
             Tokens.Add(new Token(type, text, literal, line));
         }
 
@@ -272,7 +272,7 @@ namespace CsLox
             Advance();
 
             // Trim the surrounding quotes.
-            var value = Source.Substring(start + 1, (current - 1) - (start + 1));
+            var value = Source[(start + 1)..(current - 1)];
             AddToken(TokenType.STRING, value);
         }
 
@@ -293,7 +293,7 @@ namespace CsLox
             }
 
             AddToken(TokenType.NUMBER,
-                Double.Parse(Source.Substring(start, current - start)));
+                Double.Parse(Source[start..current]));
         }
 
         /// <summary>
@@ -303,7 +303,7 @@ namespace CsLox
         {
             while (Char.IsLetterOrDigit(Peek())) Advance();
 
-            string text = Source.Substring(start, current - start);
+            string text = Source[start..current];
             TokenType type;
             var result = Keywords.TryGetValue(text, out type);
             if (!result) type = TokenType.IDENTIFIER;
