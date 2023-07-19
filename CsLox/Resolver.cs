@@ -6,12 +6,19 @@ using System.Threading.Tasks;
 
 namespace CsLox
 {
+    /// <summary>
+    /// Handles variable resolution.
+    /// </summary>
     public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
+        /// <summary>
+        /// Indicates what kind of function context we're in when handling resolution.
+        /// </summary>
         private enum FunctionType
         {
             NONE,
-            FUNCTION
+            FUNCTION,
+            METHOD
         }
 
         /// <summary>
@@ -207,6 +214,12 @@ namespace CsLox
         {
             Declare(stmt.Name);
             Define(stmt.Name);
+
+            foreach(var method in stmt.Methods)
+            {
+                var declaration = FunctionType.METHOD;
+                ResolveFunction(method, declaration);
+            }
 
             return null;
         }

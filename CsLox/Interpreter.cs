@@ -199,6 +199,12 @@ namespace CsLox
             return Evaluate(expr.Right);
         }
 
+        /// <summary>
+        /// Evaluates a set expression, where a property on an instance of a class is being set to a value.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        /// <exception cref="CsLoxRuntimeException"></exception>
         public object VisitSetExpr(Expr.Set expr)
         {
             var obj = Evaluate(expr.Obj);
@@ -338,7 +344,16 @@ namespace CsLox
         public object VisitClassStmt(Stmt.Class stmt)
         {
             env.Define(stmt.Name.Lexeme, null);
-            LoxClass @class = new LoxClass(stmt.Name.Lexeme);
+
+            var methods = new Dictionary<string, LoxFunction>();
+            foreach (var method in stmt.Methods)
+            {
+                var function = new LoxFunction(method, env);
+                methods[method.Name.Lexeme] = function;
+            }
+
+            LoxClass @class = new LoxClass(stmt.Name.Lexeme, methods);
+
             env.Assign(stmt.Name, @class);
 
             return null;

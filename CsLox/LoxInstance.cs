@@ -34,11 +34,14 @@ namespace CsLox
         /// Gets a property of the instance.
         /// </summary>
         /// <param name="name"></param>
-        /// <returns>An <see langword="object"/> or <see langword="null"/>.</returns>
+        /// <returns>An <see langword="object"/> or <see cref="LoxFunction"/> method.</returns>
         /// <exception cref="CsLoxRuntimeException">If there is no defined value.</exception>
         public object? Get(Token name)
         {
             if (fields.TryGetValue(name.Lexeme, out object? value)) return value;
+
+            var method = @class.FindMethod(name.Lexeme);
+            if (method != null) return method;
 
             throw new CsLoxRuntimeException(name, $"Undefined property '{name.Lexeme}'.");
         }
