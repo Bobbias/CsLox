@@ -82,6 +82,7 @@ namespace CsLox
         {
             try
             {
+                if (Match(TokenType.CLASS)) return ClassDeclaration();
                 if (Match(TokenType.FUN)) return Function("function");
                 if (Match(TokenType.VAR)) return VarDeclaration();
 
@@ -92,6 +93,26 @@ namespace CsLox
                 Synchronize();
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Parses a class declaration statement.
+        /// </summary>
+        /// <returns>A <see cref="Stmt.Class"/>.</returns>
+        private Stmt ClassDeclaration()
+        {
+            var name = Consume(TokenType.IDENTIFIER, "Expected class name.");
+            Consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
+
+            var methods = new List<Stmt.Function>();
+            while(!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+            {
+                methods.Add(Function("method"));
+            }
+
+            Consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.");
+
+            return new Stmt.Class(name, methods);
         }
 
         /// <summary>

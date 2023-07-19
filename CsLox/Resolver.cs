@@ -201,6 +201,19 @@ namespace CsLox
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns><see langword="null"/>.</returns>
+        public object? VisitClassStmt(Stmt.Class stmt)
+        {
+            Declare(stmt.Name);
+            Define(stmt.Name);
+
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="expr"></param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitCallExpr(Expr.Call expr)
@@ -350,7 +363,7 @@ namespace CsLox
                 CLI.Error(expr.Name, "Can't read local variable in its own initializer.");
             }
 
-            ResolveLocal();
+            ResolveLocal(expr, expr.Name);
 
             return null;
         }

@@ -96,6 +96,16 @@ namespace CsLox
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        public string VisitCallExpr(Expr.Call expr)
+        {
+            return $"{expr.Callee}()";
+        }
+
+        /// <summary>
         /// Prints a parenthesized expression.
         /// </summary>
         /// <param name="name"></param>

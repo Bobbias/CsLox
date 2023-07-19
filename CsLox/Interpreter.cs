@@ -304,6 +304,20 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Creates an instance of <see cref="LoxClass"/> and assigns it to <see cref="Stmt.Class.Name"/>.
+        /// </summary>
+        /// <param name="stmt"></param>
+        /// <returns></returns>
+        public object VisitClassStmt(Stmt.Class stmt)
+        {
+            env.Define(stmt.Name.Lexeme, null);
+            LoxClass @class = new LoxClass(stmt.Name.Lexeme);
+            env.Assign(stmt.Name, @class);
+
+            return null;
+        }
+
+        /// <summary>
         /// Executes a list of statements in a new environment as supplied in <paramref name="env"/>. Restores the previous
         /// environment after execution of the block is finished.
         /// </summary>
