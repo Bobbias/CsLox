@@ -19,7 +19,7 @@ namespace CsLox
         /// <summary>
         /// A <see cref="Dictionary{TKey, TValue}"/> of <see langword="string"/> to <see langword="object"/> containing definitions in the environment.
         /// </summary>
-        private Dictionary<string, object> Values { get; } = new Dictionary<string, object>();
+        private Dictionary<string, object?> Values { get; } = new Dictionary<string, object?>();
 
         /// <summary>
         /// Constructs a top-level LoxEnvironment with a <see langword="null"/> <see cref="Enclosing"/>.
@@ -53,7 +53,7 @@ namespace CsLox
         /// </summary>
         /// <param name="name">The name of the variable.</param>
         /// <param name="value">The value assigned to the variable.</param>
-        public void Define(string name, object value)
+        public void Define(string name, object? value)
         {
             Values.Add(name, value);
         }
@@ -64,7 +64,7 @@ namespace CsLox
         /// <param name="name">The name of the variable in question.</param>
         /// <returns>An <see langword="object"/> containing the value of the variable.</returns>
         /// <exception cref="CsLoxRuntimeException">Throws an exception if the given variable is not defined on either this environment or an enclosing one.</exception>
-        public object Get(Token name)
+        public object? Get(Token name)
         {
             if (Values.TryGetValue(name.Lexeme, out object? value)) return value;
 
@@ -82,7 +82,7 @@ namespace CsLox
         /// <param name="distance"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public object GetAt(int distance, string name)
+        public object? GetAt(int distance, string name)
         {
             return Ancestor(distance)!.Values[name];
         }
@@ -93,7 +93,7 @@ namespace CsLox
         /// <param name="distance"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        public void AssignAt(int distance, Token name, object value)
+        public void AssignAt(int distance, Token name, object? value)
         {
             Ancestor(distance)!.Values[name.Lexeme] = value;
         }
