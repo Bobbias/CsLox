@@ -32,6 +32,7 @@ namespace CsLox
             T VisitGroupingExpr(Grouping expr);
             T VisitLiteralExpr(Literal expr);
             T VisitLogicalExpr(Logical expr);
+            T VisitSetExpr(Set expr);
             T VisitUnaryExpr(Unary expr);
             T VisitVariableExpr(Variable expr);
         } // iVisitor<T>
@@ -170,6 +171,27 @@ namespace CsLox
             }
 
         } // Logical
+
+        public class Set : Expr
+        {
+            public Expr Obj { get; }
+            public Token Name { get; }
+            public Expr Value { get; }
+
+            public Set (Expr obj, Token name, Expr value)
+            {
+                Obj = obj;
+                Name = name;
+                Value = value;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitSetExpr(this);
+            }
+
+        } // Set
 
         public class Unary : Expr
         {

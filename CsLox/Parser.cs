@@ -372,6 +372,10 @@ namespace CsLox
                     var name = ((Expr.Variable)expr).Name;
                     return new Expr.Assign(name, value);
                 }
+                else if (expr is Expr.Get)
+                {
+                    var get = (Expr.Get)expr;
+                }
 
                 // Note: We report an error, but do not throw one here.
                 //       This is because the parser is not in an unknown state and there is no need to attempt to recover.

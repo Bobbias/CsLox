@@ -320,6 +320,19 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Resolves a <see cref="Expr.Set"/> expression.
+        /// </summary>
+        /// <param name="expr">The expression to resolve.</param>
+        /// <returns><see langword="null"/>.</returns>
+        public object? VisitSetExpr(Expr.Set expr)
+        {
+            Resolve(expr.Value);
+            Resolve(expr.Obj);
+
+            return null;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="stmt"></param>

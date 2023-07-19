@@ -199,6 +199,21 @@ namespace CsLox
             return Evaluate(expr.Right);
         }
 
+        public object VisitSetExpr(Expr.Set expr)
+        {
+            var obj = Evaluate(expr.Obj);
+
+            if(obj is not LoxInstance)
+            {
+                throw new CsLoxRuntimeException(expr.Name, "Only instances have fields.");
+            }
+
+            var value = Evaluate(expr.Value);
+            ((LoxInstance)obj).Set(expr.Name, value);
+
+            return value;
+        }
+
         /// <summary>
         /// Evaluates the unary experssion <paramref name="expr"/> and returns the result as an <see langword="object"/>.
         /// </summary>

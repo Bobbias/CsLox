@@ -31,7 +31,7 @@ namespace CsLox
         }
 
         /// <summary>
-        /// Gets a property of the class.
+        /// Gets a property of the instance.
         /// </summary>
         /// <param name="name"></param>
         /// <returns>An <see langword="object"/> or <see langword="null"/>.</returns>
@@ -41,6 +41,16 @@ namespace CsLox
             if (fields.TryGetValue(name.Lexeme, out object? value)) return value;
 
             throw new CsLoxRuntimeException(name, $"Undefined property '{name.Lexeme}'.");
+        }
+
+        /// <summary>
+        /// Sets a property of the instance.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public void Set(Token name, object value)
+        {
+            fields[name.Lexeme] = value;
         }
 
         /// <inheritdoc/>
