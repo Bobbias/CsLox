@@ -231,6 +231,18 @@ namespace CsLox
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="expr"></param>
+        /// <returns><see langword="null"/>.</returns>
+        public object? VisitGetExpr(Expr.Get expr)
+        {
+            Resolve(expr.Obj);
+
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="stmt"></param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitExpressionStmt(Stmt.Expression stmt)

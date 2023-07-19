@@ -28,6 +28,7 @@ namespace CsLox
             T VisitAssignExpr(Assign expr);
             T VisitBinaryExpr(Binary expr);
             T VisitCallExpr(Call expr);
+            T VisitGetExpr(Get expr);
             T VisitGroupingExpr(Grouping expr);
             T VisitLiteralExpr(Literal expr);
             T VisitLogicalExpr(Logical expr);
@@ -95,6 +96,25 @@ namespace CsLox
             }
 
         } // Call
+
+        public class Get : Expr
+        {
+            public Expr Obj { get; }
+            public Token Name { get; }
+
+            public Get (Expr obj, Token name)
+            {
+                Obj = obj;
+                Name = name;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitGetExpr(this);
+            }
+
+        } // Get
 
         public class Grouping : Expr
         {

@@ -519,6 +519,11 @@ namespace CsLox
                 {
                     expr = FinishCall(expr);
                 }
+                else if (Match(TokenType.DOT))
+                {
+                    var name = Consume(TokenType.IDENTIFIER, "Expected property name after '.'.");
+                    expr = new Expr.Get(expr, name);
+                }
                 else
                 {
                     break;

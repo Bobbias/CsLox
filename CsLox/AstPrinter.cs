@@ -106,6 +106,17 @@ namespace CsLox
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns>A string representing the given expression.</returns>
+        public string VisitGetExpr(Expr.Get expr)
+        {
+            // FIXME: Figure out if this gets the full object.property. If not, find out how to display that.
+            return $"get {expr.Name.Lexeme}";
+        }
+
+        /// <summary>
         /// Prints a parenthesized expression.
         /// </summary>
         /// <param name="name"></param>

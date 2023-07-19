@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.ConstrainedExecution;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -144,6 +145,17 @@ namespace CsLox
             }
 
             return fun.Call(this, args);
+        }
+
+        public object VisitGetExpr(Expr.Get expr)
+        {
+            var obj = Evaluate(expr.Obj);
+            if (obj is LoxInstance)
+            {
+                return ((LoxInstance)obj).Get(expr.Name);
+            }
+
+            throw new CsLoxRuntimeException(expr.Name, "Only instances have properties.");
         }
 
         /// <summary>
