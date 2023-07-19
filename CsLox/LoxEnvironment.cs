@@ -6,16 +6,33 @@ using System.Threading.Tasks;
 
 namespace CsLox
 {
+    /// <summary>
+    /// A LoxEnvironment represents a given scope while interpreting Lox source.
+    /// </summary>
     public class LoxEnvironment
     {
-        public LoxEnvironment? Enclosing { get; private set; }
+        /// <summary>
+        /// The enclosing environment if one exists, otherwise <see langword="null"/>.
+        /// </summary>
+        public LoxEnvironment? Enclosing { get; }
+
+        /// <summary>
+        /// A <see cref="Dictionary{TKey, TValue}"/> of <see langword="string"/> to <see langword="object"/> containing definitions in the environment.
+        /// </summary>
         private Dictionary<string, object> Values { get; } = new Dictionary<string, object>();
 
+        /// <summary>
+        /// Constructs a top-level LoxEnvironment with a <see langword="null"/> <see cref="Enclosing"/>.
+        /// </summary>
         public LoxEnvironment()
         {
             Enclosing = null;
         }
 
+        /// <summary>
+        /// Constructs a LoxEnvironment with a given <paramref name="enclosing"/> LoxEnvironment.
+        /// </summary>
+        /// <param name="enclosing"></param>
         public LoxEnvironment(LoxEnvironment enclosing)
         {
             Enclosing = enclosing;
@@ -49,7 +66,7 @@ namespace CsLox
         /// <exception cref="CsLoxRuntimeException">Throws an exception if the given variable is not defined on either this environment or an enclosing one.</exception>
         public object Get(Token name)
         {
-            if (Values.ContainsKey(name.Lexeme)) return Values[name.Lexeme];
+            if (Values.TryGetValue(name.Lexeme, out object? value)) return value;
 
             if (Enclosing != null)
             {
@@ -60,7 +77,7 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Retrieves a previously defined variable by <paramref name="name"/>, from the ancestor level indicated by <paramref name="distance"/>.
         /// </summary>
         /// <param name="distance"></param>
         /// <param name="name"></param>
@@ -71,7 +88,7 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Assigns <paramref name="value"/> to a variable by <paramref name="name"/> at an ancestor level specified by <paramref name="distance"/>.
         /// </summary>
         /// <param name="distance"></param>
         /// <param name="name"></param>
@@ -82,10 +99,10 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Gets an ancestor of the current environment, traversing <paramref name="distance"/> levels up the heirarchy.
         /// </summary>
         /// <param name="distance"></param>
-        /// <returns></returns>
+        /// <returns>A <see cref="LoxEnvironment"/> <paramref name="distance"/> levels up the heirarchy.</returns>
         public LoxEnvironment? Ancestor(int distance)
         {
             var environment = this;
