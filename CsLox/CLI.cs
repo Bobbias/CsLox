@@ -177,6 +177,13 @@ namespace CsLox
             // Stop if there was a syntax error.
             if (HadError) return;
 
+            // Run variable resolution phase before interpreting.
+            var resolver = new Resolver(Interpreter);
+            resolver.Resolve(statements);
+
+            // Stop if there was a resolution error.
+            if (HadError) return;
+
             // TODO: Handle null expr
             Interpreter.Interpret(statements);
         }

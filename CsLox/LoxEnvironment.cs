@@ -60,6 +60,44 @@ namespace CsLox
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="distance"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public object GetAt(int distance, string name)
+        {
+            return Ancestor(distance)!.Values[name];
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="distance"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public void AssignAt(int distance, Token name, object value)
+        {
+            Ancestor(distance)!.Values[name.Lexeme] = value;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="distance"></param>
+        /// <returns></returns>
+        public LoxEnvironment? Ancestor(int distance)
+        {
+            var environment = this;
+            for (int i = 0; i < distance; ++i)
+            {
+                environment = environment!.Enclosing;
+            }
+
+            return environment;
+        }
+
+        /// <summary>
         /// Reassigns an existing variable to a new value.
         /// </summary>
         /// <param name="name"></param>

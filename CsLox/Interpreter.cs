@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +16,9 @@ namespace CsLox
     /// </summary>
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
-
+        /// <summary>
+        /// Stores the global scope.
+        /// </summary>
         internal readonly LoxEnvironment globals = new LoxEnvironment();
 
         /// <summary>
@@ -26,6 +29,11 @@ namespace CsLox
         /// an empty environment, then assigned to globals later when the interpreter is constructed.
         /// </remarks>
         private LoxEnvironment env = new LoxEnvironment();
+
+        /// <summary>
+        /// Contains resolution information separate from the AST node.
+        /// </summary>
+        private readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
 
         /// <summary>
         /// Constructs an interpreter.
@@ -210,7 +218,26 @@ namespace CsLox
         /// <returns></returns>
         public object VisitVariableExpr(Expr.Variable expr)
         {
-            return env.Get(expr.Name);
+            return LookUpVariable(expr.Name, expr);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        private object LookUpVariable(Token name, Expr expr)
+        {
+            int distance = locals.GetValueOrDefault(expr, -1);
+            if (distance != -1)
+            {
+                return env.GetAt(distance, name.Lexeme);
+            }
+            else
+            {
+                return globals.Get(name);
+            }
         }
 
         /// <summary>
@@ -255,6 +282,16 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Stores resolution information for a given expression.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <param name="depth"></param>
+        public void Resolve(Expr expr, int depth)
+        {
+            locals[expr] = depth;
+        }
+
+        /// <summary>
         /// Executes the statements inside <paramref name="stmt"/> in a new environment.
         /// </summary>
         /// <param name="stmt"></param>
@@ -262,6 +299,7 @@ namespace CsLox
         public object VisitBlockStmt(Stmt.Block stmt)
         {
             ExecuteBlock(stmt.Stmts, new LoxEnvironment(env));
+
             return null;
         }
 
@@ -296,8 +334,11 @@ namespace CsLox
         /// <returns><see langword="false"/> if obj is <see langword="null"/> or <see langword="false"/>, otherwise <see langword="true"/>.</returns>
         private bool IsTruthy(object obj)
         {
-            if (obj == null) return false;
-            if (obj is bool) return (bool)obj;
+            if (obj == null)
+                return false;
+            if (obj is bool)
+                return (bool)obj;
+
             return true;
         }
 
@@ -326,7 +367,9 @@ namespace CsLox
         /// <exception cref="CsLoxRuntimeException"></exception>
         private void CheckNumberOperand(Token oper, object operand)
         {
-            if (operand is double) return;
+            if (operand is double)
+                return;
+
             throw new CsLoxRuntimeException(oper, "Operand must be a number.");
         }
 
@@ -342,7 +385,9 @@ namespace CsLox
         /// <exception cref="CsLoxRuntimeException"></exception>
         private void CheckNumberOperands(Token oper, object left, object right)
         {
-            if (left is double && right is double) return;
+            if (left is double && right is double)
+                return;
+
             throw new CsLoxRuntimeException(oper, "Operands must be numbers.");
         }
 
@@ -359,9 +404,7 @@ namespace CsLox
             if (obj == null) return "nil";
 
             if (obj is double)
-            {
                 return string.Format("{0:G29}", (double)obj);
-            }
 
             return obj.ToString() ?? "nil";
         }
@@ -403,13 +446,10 @@ namespace CsLox
         public object VisitIfStmt(Stmt.If stmt)
         {
             if (IsTruthy(Evaluate(stmt.Cond)))
-            {
                 Execute(stmt.ThenBranch);
-            }
             else if (stmt.ElseBranch != null)
-            {
                 Execute(stmt.ElseBranch);
-            }
+
             return null;
         }
 
@@ -460,6 +500,7 @@ namespace CsLox
             }
 
             env.Define(stmt.Name.Lexeme, value);
+
             return null;
         }
 
@@ -487,7 +528,12 @@ namespace CsLox
         {
             var value = Evaluate(expr.Value);
 
-            env.Assign(expr.Name, value);
+            int distance = locals[expr];
+
+            if (distance != -1)
+                env.AssignAt(distance, expr.Name, value);
+            else
+                globals.Assign(expr.Name, value);
 
             return value;
         }
