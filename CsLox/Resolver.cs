@@ -22,6 +22,16 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Indicates what kind of class context we're in when handling resolution. Aids
+        /// in detecting misuses of the <see langword="this"/> keyword, among other issues.
+        /// </summary>
+        private enum ClassType
+        {
+            NONE,
+            CLASS
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         private readonly Interpreter interpreter;
@@ -36,6 +46,12 @@ namespace CsLox
         /// is encountered outside of a function.
         /// </summary>
         private FunctionType currentFunction = FunctionType.NONE;
+
+        /// <summary>
+        /// Tracks whether we're in a class or not. This aids us in catching cases where a
+        /// <see langword="this"/> keyword is encountered in an imporoper context.
+        /// </summary>
+        private ClassType currentClass = ClassType.NONE;
 
         /// <summary>
         /// The resolver performs variable resolution as a separate pass after parsing but before interpreting.
@@ -212,6 +228,9 @@ namespace CsLox
         /// <returns><see langword="null"/>.</returns>
         public object? VisitClassStmt(Stmt.Class stmt)
         {
+            var enclosingClass = currentClass;
+            currentClass = ClassType.CLASS;
+
             Declare(stmt.Name);
             Define(stmt.Name);
 
@@ -226,6 +245,7 @@ namespace CsLox
 
             EndScope();
 
+            currentClass = enclosingClass;
             return null;
         }
 
@@ -357,6 +377,12 @@ namespace CsLox
         /// <returns><see langword="null"/>.</returns>
         public object? VisitThisExpr(Expr.This expr)
         {
+            if (currentClass == ClassType.NONE)
+            {
+                CLI.Error(expr.Keyword, "Can't use `this` outside of a class.");
+                return null;
+            }
+
             ResolveLocal(expr, expr.Keyword);
 
             return null;
