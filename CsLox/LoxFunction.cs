@@ -30,6 +30,18 @@ namespace CsLox
             this.closure = closure;
         }
 
+        /// <summary>
+        /// Binds an instance to the method.
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <returns>A <see cref="LoxFunction"/> where <see langword="this"/> is bound to the given instance.</returns>
+        LoxFunction Bind(LoxInstance instance)
+        {
+            var env = new LoxEnvironment(closure);
+            env.Define("this", instance);
+
+            return new LoxFunction(declaration, env);
+        }
 
         /// <summary>
         /// Calls the function with the given arguments.

@@ -41,7 +41,7 @@ namespace CsLox
             if (fields.TryGetValue(name.Lexeme, out object? value)) return value;
 
             var method = @class.FindMethod(name.Lexeme);
-            if (method != null) return method;
+            if (method != null) return method.Bind(this);
 
             throw new CsLoxRuntimeException(name, $"Undefined property '{name.Lexeme}'.");
         }

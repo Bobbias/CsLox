@@ -221,6 +221,16 @@ namespace CsLox
         }
 
         /// <summary>
+        /// Evaluates the this keyword by looking it up in the current environment.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        public object VisitThisExpr(Expr.This expr)
+        {
+            return LookUpVariable(expr.Keyword, expr);
+        }
+
+        /// <summary>
         /// Evaluates the unary experssion <paramref name="expr"/> and returns the result as an <see langword="object"/>.
         /// </summary>
         /// <param name="expr"></param>

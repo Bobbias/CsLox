@@ -215,11 +215,16 @@ namespace CsLox
             Declare(stmt.Name);
             Define(stmt.Name);
 
+            BeginScope();
+            scopes.Peek().Add("this", true);
+
             foreach(var method in stmt.Methods)
             {
                 var declaration = FunctionType.METHOD;
                 ResolveFunction(method, declaration);
             }
+
+            EndScope();
 
             return null;
         }
@@ -341,6 +346,18 @@ namespace CsLox
         {
             Resolve(expr.Value);
             Resolve(expr.Obj);
+
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns><see langword="null"/>.</returns>
+        public object? VisitThisExpr(Expr.This expr)
+        {
+            ResolveLocal(expr, expr.Keyword);
 
             return null;
         }

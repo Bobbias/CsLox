@@ -33,6 +33,7 @@ namespace CsLox
             T VisitLiteralExpr(Literal expr);
             T VisitLogicalExpr(Logical expr);
             T VisitSetExpr(Set expr);
+            T VisitThisExpr(This expr);
             T VisitUnaryExpr(Unary expr);
             T VisitVariableExpr(Variable expr);
         } // iVisitor<T>
@@ -192,6 +193,23 @@ namespace CsLox
             }
 
         } // Set
+
+        public class This : Expr
+        {
+            public Token Keyword { get; }
+
+            public This (Token keyword)
+            {
+                Keyword = keyword;
+            }
+
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitThisExpr(this);
+            }
+
+        } // This
 
         public class Unary : Expr
         {
