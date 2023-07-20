@@ -358,7 +358,7 @@ namespace CsLox
             var methods = new Dictionary<string, LoxFunction>();
             foreach (var method in stmt.Methods)
             {
-                var function = new LoxFunction(method, env);
+                var function = new LoxFunction(method, env, method.Name.Lexeme.Equals("init"));
                 methods[method.Name.Lexeme] = function;
             }
 
@@ -496,7 +496,7 @@ namespace CsLox
         /// <returns><see langword="null"/>.</returns>
         public object VisitFunctionStmt(Stmt.Function stmt)
         {
-            var function = new LoxFunction(stmt, env);
+            var function = new LoxFunction(stmt, env, false);
             env.Define(stmt.Name.Lexeme, function);
             
             return null;

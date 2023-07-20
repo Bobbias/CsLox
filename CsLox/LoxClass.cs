@@ -17,7 +17,17 @@ namespace CsLox
         public string Name { get; }
 
         /// <inheritdoc/>
-        public int Arity { get; } = 0;
+        public int Arity {
+            get
+            {
+                var initializer = FindMethod("init");
+                
+                if (initializer == null)
+                    return 0;
+                
+                return initializer.Arity;
+            }
+        }
 
         /// <summary>
         /// Contains the methods for each instance of this class.
@@ -62,6 +72,11 @@ namespace CsLox
         public object Call(Interpreter interpreter, List<object> args)
         {
             var instance = new LoxInstance(this);
+            var initializer = FindMethod("init");
+            if (initializer != null)
+            {
+                initializer.Bind(instance).Call(interpreter, args);
+            }
 
             return instance;
         }

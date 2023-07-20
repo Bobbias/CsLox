@@ -18,16 +18,22 @@ namespace CsLox
         /// </summary>
         public int Arity { get ; private set; }
 
+        /// <summary>
+        /// Provides a closure containing the function's environment.
+        /// </summary>
         private readonly LoxEnvironment closure;
+
+        private readonly bool isInitializer;
 
         /// <summary>
         /// Constructs a Function object.
         /// </summary>
         /// <param name="decl">The declaration for the function.</param>
-        public LoxFunction(Stmt.Function decl, LoxEnvironment closure)
+        public LoxFunction(Stmt.Function decl, LoxEnvironment closure, bool isInitializer)
         {
             declaration = decl;
             this.closure = closure;
+            this.isInitializer = isInitializer;
         }
 
         /// <summary>
@@ -40,7 +46,7 @@ namespace CsLox
             var env = new LoxEnvironment(closure);
             env.Define("this", instance);
 
-            return new LoxFunction(declaration, env);
+            return new LoxFunction(declaration, env, isInitializer);
         }
 
         /// <summary>
@@ -64,8 +70,11 @@ namespace CsLox
             }
             catch (Return retValue)
             {
+                if (isInitializer) return closure.GetAt(0, "this");
                 return retValue.Value;
             }
+
+            if (isInitializer) return closure.GetAt(0, "this");
 
             return null;
         }
