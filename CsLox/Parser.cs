@@ -576,7 +576,7 @@ namespace CsLox
         }
 
         /// <summary>
-        /// primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+        /// primary        → "true" | "false" | "nil" | "this" | NUMBER | STRING | IDENTIFIER | "(" expression ")" | "super" "." IDENTIFIER ;
         /// </summary>
         /// <returns>An <see cref="Expr"/>.</returns>
         private Expr Primary()
@@ -588,6 +588,15 @@ namespace CsLox
             if (Match(TokenType.NUMBER, TokenType.STRING))
             {
                 return new Expr.Literal(Previous().Literal);
+            }
+
+            if (Match(TokenType.SUPER))
+            {
+                var keyword = Previous();
+                Consume(TokenType.DOT, "Expected `.` after `super`.");
+                var method = Consume(TokenType.IDENTIFIER, "Expected superclass method name.");
+                
+                return new Expr.Super(keyword, method);
             }
 
             if (Match(TokenType.THIS))

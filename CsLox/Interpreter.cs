@@ -221,6 +221,33 @@ namespace CsLox
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        /// <exception cref="CsLoxRuntimeException">If the method named in <paramref name="expr"/> is not defined, or if <see langword="super"/> cannot be found.</exception>
+        public object VisitSuperExpr(Expr.Super expr)
+        {
+            var found = locals.TryGetValue(expr, out var distance);
+            if (found)
+            {
+                var superclass = (LoxClass?)env.GetAt(distance, "super");
+                var @object = (LoxInstance?)env.GetAt(distance - 1, "this");
+
+                var method = superclass!.FindMethod(expr.Method.Lexeme);
+
+                if (method == null)
+                {
+                    throw new CsLoxRuntimeException(expr.Method, $"Undefined peoperty `{expr.Method.Lexeme}`.");
+                }
+
+                return method!.Bind(@object!);
+            }
+
+            throw new CsLoxRuntimeException(expr.Method, "VisitSuperExpr: Failed to find super. This may be a compiler error.");
+        }
+
+        /// <summary>
         /// Evaluates the this keyword by looking it up in the current environment.
         /// </summary>
         /// <param name="expr"></param>
@@ -365,6 +392,12 @@ namespace CsLox
 
             env.Define(stmt.Name.Lexeme, null);
 
+            if (stmt.Superclass != null)
+            {
+                env = new LoxEnvironment(env);
+                env.Define("super", superclass);
+            }
+
             var methods = new Dictionary<string, LoxFunction>();
             foreach (var method in stmt.Methods)
             {
@@ -372,7 +405,12 @@ namespace CsLox
                 methods[method.Name.Lexeme] = function;
             }
 
-            LoxClass @class = new LoxClass(stmt.Name.Lexeme, (LoxClass)superclass, methods);
+            LoxClass @class = new LoxClass(stmt.Name.Lexeme, (LoxClass?)superclass, methods);
+
+            if (superclass != null)
+            {
+                env = env.Enclosing!;
+            }
 
             env.Assign(stmt.Name, @class);
 

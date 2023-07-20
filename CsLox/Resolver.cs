@@ -24,12 +24,14 @@ namespace CsLox
 
         /// <summary>
         /// Indicates what kind of class context we're in when handling resolution. Aids
-        /// in detecting misuses of the <see langword="this"/> keyword, among other issues.
+        /// in detecting misuses of the <see langword="this"/> and <see langword="super"/>
+        /// keywords, among other things.
         /// </summary>
         private enum ClassType
         {
             NONE,
-            CLASS
+            CLASS,
+            SUBCLASS
         }
 
         /// <summary>
@@ -223,7 +225,8 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves variables in class declarations. This includes implicitly defining
+        /// <see langword="this"/> and <see langword="super"/>.
         /// </summary>
         /// <param name="stmt"></param>
         /// <returns><see langword="null"/>.</returns>
@@ -243,7 +246,15 @@ namespace CsLox
 
             if(stmt.Superclass != null)
             {
+                currentClass = ClassType.SUBCLASS;
                 Resolve(stmt.Superclass);
+            }
+
+            if (stmt.Superclass != null)
+            {
+                BeginScope();
+
+                scopes.Peek().Add("super", true);
             }
 
             BeginScope();
@@ -261,6 +272,11 @@ namespace CsLox
             }
 
             EndScope();
+
+            if (stmt.Superclass != null)
+            {
+                EndScope();
+            }
 
             currentClass = enclosingClass;
             return null;
@@ -383,6 +399,27 @@ namespace CsLox
         {
             Resolve(expr.Value);
             Resolve(expr.Obj);
+
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns><see langword="null"/>.</returns>
+        public object? VisitSuperExpr(Expr.Super expr)
+        {
+            if(currentClass == ClassType.NONE)
+            {
+                CLI.Error(expr.Keyword, "Can't use `super` outside of a class.");
+            }
+            else if (currentClass != ClassType.SUBCLASS)
+            {
+                CLI.Error(expr.Keyword, "Can't use `super` in a class with no superclass.");
+            }
+
+            ResolveLocal(expr, expr.Keyword);
 
             return null;
         }
