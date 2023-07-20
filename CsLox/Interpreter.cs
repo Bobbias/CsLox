@@ -372,7 +372,7 @@ namespace CsLox
                 methods[method.Name.Lexeme] = function;
             }
 
-            LoxClass @class = new LoxClass(stmt.Name.Lexeme, methods);
+            LoxClass @class = new LoxClass(stmt.Name.Lexeme, (LoxClass)superclass, methods);
 
             env.Assign(stmt.Name, @class);
 

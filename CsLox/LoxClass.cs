@@ -60,6 +60,11 @@ namespace CsLox
         {
             if (methods.TryGetValue(name, out LoxFunction? method)) return method;
 
+            if (superclass != null)
+            {
+                return superclass.FindMethod(name);
+            }
+
             return null;
         }
 
