@@ -102,6 +102,14 @@ namespace CsLox
         private Stmt ClassDeclaration()
         {
             var name = Consume(TokenType.IDENTIFIER, "Expected class name.");
+
+            Expr.Variable superclass = null;
+            if (Match(TokenType.LESS))
+            {
+                Consume(TokenType.IDENTIFIER, "Expected superclass name.");
+                superclass = new Expr.Variable(Previous());
+            }
+
             Consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
 
             var methods = new List<Stmt.Function>();
@@ -112,7 +120,7 @@ namespace CsLox
 
             Consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.");
 
-            return new Stmt.Class(name, methods);
+            return new Stmt.Class(name, superclass, methods);
         }
 
         /// <summary>

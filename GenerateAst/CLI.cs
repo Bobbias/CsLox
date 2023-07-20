@@ -30,7 +30,7 @@ namespace GenerateAst
 
             AstBuilder.DefineAst(file, new List<string> {
                 "Block      : List<Stmt> stmts",
-                "Class      : Token name, List<Stmt.Function> methods",
+                "Class      : Token name, Expr.Variable? superclass, List<Stmt.Function> methods",
                 "Expression : Expr expr",
                 "Function   : Token name, List<Token> parameters, List<Stmt> body",
                 "If         : Expr cond, Stmt thenBranch, Stmt? elseBranch",

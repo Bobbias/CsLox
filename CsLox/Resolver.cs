@@ -235,6 +235,17 @@ namespace CsLox
             Declare(stmt.Name);
             Define(stmt.Name);
 
+            if (stmt.Superclass != null &&
+                stmt.Name.Lexeme.Equals(stmt.Superclass.Name.Lexeme))
+            {
+                CLI.Error(stmt.Superclass.Name, "A class can't inherit from itself.");
+            }
+
+            if(stmt.Superclass != null)
+            {
+                Resolve(stmt.Superclass);
+            }
+
             BeginScope();
             scopes.Peek().Add("this", true);
 

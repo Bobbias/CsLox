@@ -353,6 +353,16 @@ namespace CsLox
         /// <returns></returns>
         public object VisitClassStmt(Stmt.Class stmt)
         {
+            object? superclass = null;
+            if (stmt.Superclass != null)
+            {
+                superclass = Evaluate(stmt.Superclass);
+                if(superclass is not LoxClass)
+                {
+                    throw new CsLoxRuntimeException(stmt.Superclass.Name, "Superclass must be a class.");
+                }
+            }
+
             env.Define(stmt.Name.Lexeme, null);
 
             var methods = new Dictionary<string, LoxFunction>();

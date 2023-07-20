@@ -16,6 +16,11 @@ namespace CsLox
         /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// This class' superclass.
+        /// </summary>
+        public readonly LoxClass? superclass;
+
         /// <inheritdoc/>
         public int Arity {
             get
@@ -39,10 +44,11 @@ namespace CsLox
         /// </summary>
         /// <param name="name">The name of the class.</param>
         /// <param name="methods">The methods of the class.</param>
-        public LoxClass(string name, Dictionary<string, LoxFunction> methods)
+        public LoxClass(string name, LoxClass? superclass, Dictionary<string, LoxFunction> methods)
         {
             Name = name;
             this.methods = methods;
+            this.superclass = superclass;
         }
 
         /// <summary>
