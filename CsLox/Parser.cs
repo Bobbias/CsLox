@@ -375,14 +375,14 @@ namespace CsLox
                 var equals = Previous();
                 var value = Assignment();
 
-                if (expr is Expr.Variable)
+                if (expr is Expr.Variable variable)
                 {
-                    var name = ((Expr.Variable)expr).Name;
+                    var name = (variable).Name;
                     return new Expr.Assign(name, value);
                 }
-                else if (expr is Expr.Get)
+                else if (expr is Expr.Get getExpr)
                 {
-                    var get = (Expr.Get)expr;
+                    return new Expr.Set(getExpr.Obj, getExpr.Name, value);
                 }
 
                 // Note: We report an error, but do not throw one here.
