@@ -35,7 +35,7 @@ namespace CsLox
         /// </summary>
         /// <param name="instance"></param>
         /// <returns>A <see cref="LoxFunction"/> where <see langword="this"/> is bound to the given instance.</returns>
-        LoxFunction Bind(LoxInstance instance)
+        public LoxFunction Bind(LoxInstance instance)
         {
             var env = new LoxEnvironment(closure);
             env.Define("this", instance);
