@@ -6,6 +6,10 @@ CSLox is a C# implementation of the Lox programming language as detailed in the 
 
 Current progress corresponds with the end of Chapter 13: Inheritance.
 
+# Current Task
+
+Improving documentation, and making modifications to the language before moving on to create the bytecode interpreter.
+
 # Dependencies
 
 This project depends on a couple Nuget packages:
