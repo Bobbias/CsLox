@@ -272,7 +272,7 @@ namespace CsLox
             /// Defines various console mode values which can be get or set using the appropriate functions.
             /// </summary>
             [Flags]
-            private enum ConsoleModes : uint
+            private enum ConsoleMode : uint
             {
                 ENABLE_PROCESSED_INPUT = 0x0001,
                 ENABLE_LINE_INPUT = 0x0002,
@@ -311,7 +311,7 @@ namespace CsLox
             public static bool DoesTerminalSupportAnsiEscapes()
             {
                 IntPtr consoleHandle = GetStdHandle((int)StandardIOHandles.STD_INPUT_HANDLE);
-                var mode = (uint)ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                var mode = (uint)ConsoleMode.ENABLE_VIRTUAL_TERMINAL_PROCESSING;
                 return GetConsoleMode(consoleHandle, out mode);
             }
         }
