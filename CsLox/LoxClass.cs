@@ -8,6 +8,8 @@ namespace CsLox
 {
     /// <summary>
     /// Reresents a class in Lox.
+    /// <para/>
+    /// In Lox, classes are single inheritance. This means a class may only inherit from one parent.
     /// </summary>
     public class LoxClass: ILoxCallable
     {
@@ -80,14 +82,13 @@ namespace CsLox
         /// <param name="interpreter">A copy of the interpreter, which may be needed in some cases.</param>
         /// <param name="args">Arguments to the call.</param>
         /// <returns>A new <see cref="LoxInstance"/> of this class.</returns>
-        public object Call(Interpreter interpreter, List<object> args)
+        public object Call(Interpreter interpreter, List<object?> args)
         {
             var instance = new LoxInstance(this);
             var initializer = FindMethod("init");
-            if (initializer != null)
-            {
-                initializer.Bind(instance).Call(interpreter, args);
-            }
+            initializer?
+                .Bind(instance)
+                .Call(interpreter, args);
 
             return instance;
         }

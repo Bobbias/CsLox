@@ -22,6 +22,6 @@ namespace CsLox
         /// <param name="interpreter"></param>
         /// <param name="args"></param>
         /// <returns>An <see langword="object"/> containing the result of the function call.</returns>
-        object Call(Interpreter interpreter, List<object> args);
+        object? Call(Interpreter interpreter, List<object?> args);
     }
 }

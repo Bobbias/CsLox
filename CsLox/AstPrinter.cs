@@ -16,7 +16,7 @@ namespace CsLox
         /// <summary>
         /// Prints an expression.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expressions to print.</param>
         /// <returns>A string representing the given expression.</returns>
         string Print(Expr expr)
         {
@@ -26,7 +26,7 @@ namespace CsLox
         /// <summary>
         /// Prints a binary expression.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expressions to print.</param>
         /// <returns>A string representing the given expression.</returns>
         public string VisitBinaryExpr(Expr.Binary expr)
         {
@@ -36,7 +36,7 @@ namespace CsLox
         /// <summary>
         /// Prints a grouping expression.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expressions to print.</param>
         /// <returns>A string representing the given expression.</returns>
         public string VisitGroupingExpr(Expr.Grouping expr)
         {
@@ -46,7 +46,7 @@ namespace CsLox
         /// <summary>
         /// Prints a literal value.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expressions to print.</param>
         /// <returns>A string representing the given expression, or 'nil' if the object is <see langword="null"/> or <see cref="Object.ToString"/> fails.</returns>
         public string VisitLiteralExpr(Expr.Literal expr)
         {
@@ -55,9 +55,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// Prints a unary expression.
+        /// Prints unary expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expressions to print.</param>
         /// <returns>A string representing the given expression.</returns>
         public string VisitUnaryExpr(Expr.Unary expr)
         {
@@ -65,9 +65,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// Prints a variable expression.
+        /// Prints variable expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expressions to print.</param>
         /// <returns>A string representing the given expression.</returns>
         public string VisitVariableExpr(Expr.Variable expr)
         {
@@ -75,9 +75,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// Prints an assignment expression.
+        /// Prints assignment expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expressions to print.</param>
         /// <returns>A string representing the given expression.</returns>
         public string VisitAssignExpr(Expr.Assign expr)
         {
@@ -85,9 +85,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// Prints a logical expression.
+        /// Prints logical expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expressions to print.</param>
         /// <returns>A string representing the given expression.</returns>
         public string VisitLogicalExpr(Expr.Logical expr)
         {
@@ -96,19 +96,19 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Prints call expressions.
         /// </summary>
-        /// <param name="expr"></param>
-        /// <returns></returns>
+        /// <param name="expr">The expressions to print.</param>
+        /// <returns>A string representing the given expression.</returns>
         public string VisitCallExpr(Expr.Call expr)
         {
             return $"{expr.Callee}()";
         }
 
         /// <summary>
-        /// 
+        /// Prints get expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expressions to print.</param>
         /// <returns>A string representing the given expression.</returns>
         public string VisitGetExpr(Expr.Get expr)
         {
@@ -119,22 +119,55 @@ namespace CsLox
         /// <summary>
         /// Prints a parenthesized expression.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="exprs"></param>
+        /// <param name="name">The name of the expression type.</param>
+        /// <param name="exprs">The expressions to print.</param>
         /// <returns>A string representing the given expression.</returns>
         private string Parenthesize(string name, params Expr[] exprs)
         {
             var sb = new StringBuilder();
 
-            sb.Append("(");
+            sb.Append('(');
             sb.Append(name);
             foreach (var expr in exprs)
             {
-                sb.Append($" {expr.Accept(this)}");
+                sb.Append(' ').Append(expr.Accept(this));
             }
-            sb.Append(")");
+            sb.Append(')');
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Prints set expressions.
+        /// </summary>
+        /// <param name="expr">The expression to print.</param>
+        /// <returns>A string representing the given expression.</returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public string VisitSetExpr(Expr.Set expr)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Prints super expressions.
+        /// </summary>
+        /// <param name="expr">The expression to print.</param>
+        /// <returns>A string representing the given expression.</returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public string VisitSuperExpr(Expr.Super expr)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Prints this expressions.
+        /// </summary>
+        /// <param name="expr">The expression to print.</param>
+        /// <returns>A string representing the given expression.</returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public string VisitThisExpr(Expr.This expr)
+        {
+            throw new NotImplementedException();
         }
     }
 }

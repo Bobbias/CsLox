@@ -14,12 +14,12 @@ namespace CsLox
         /// <summary>
         /// The class definition this instance is based on.
         /// </summary>
-        private LoxClass @class;
+        private readonly LoxClass @class;
 
         /// <summary>
         /// Contains all properties of the class.
         /// </summary>
-        private readonly Dictionary<string, object> fields = new Dictionary<string, object>();
+        private readonly Dictionary<string, object?> fields = new();
 
         /// <summary>
         /// Creates a runtime instance of the given <see cref="LoxClass"/>.
@@ -51,7 +51,7 @@ namespace CsLox
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        public void Set(Token name, object value)
+        public void Set(Token name, object? value)
         {
             fields[name.Lexeme] = value;
         }

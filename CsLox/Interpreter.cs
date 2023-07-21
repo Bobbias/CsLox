@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.ConstrainedExecution;
@@ -15,12 +16,12 @@ namespace CsLox
     /// This class implements the <see href="https://en.wikipedia.org/wiki/Visitor_pattern">visitor pattern</see> for expressions and statements,
     /// determining how statements and expressions are evaluated.
     /// </summary>
-    public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
+    public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         /// <summary>
         /// Stores the global scope.
         /// </summary>
-        internal readonly LoxEnvironment globals = new LoxEnvironment();
+        internal readonly LoxEnvironment globals = new();
 
         /// <summary>
         /// The current scope the interpreter is operating in.
@@ -29,12 +30,12 @@ namespace CsLox
         /// Env should be initialized to <see cref="Interpreter.globals"/> but since that would require globals to be static, it is initialized to
         /// an empty environment, then assigned to globals later when the interpreter is constructed.
         /// </remarks>
-        private LoxEnvironment env = new LoxEnvironment();
+        private LoxEnvironment env = new();
 
         /// <summary>
         /// Contains resolution information separate from the AST node.
         /// </summary>
-        private readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
+        private readonly Dictionary<Expr, int> locals = new();
 
         /// <summary>
         /// Constructs an interpreter.
@@ -62,10 +63,10 @@ namespace CsLox
         /// <para/>
         /// When evaluating <see langword="+"/>, both operands must be either numbers, or strings. If this condition is not met, then an exception is thrown.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expression to be evaluated.</param>
         /// <returns>The result of evaluating the given <see cref="Expr.Binary"/> operation as an <see langword="object"/>.</returns>
         /// <exception cref="CsLoxRuntimeException">Throws an exception if the operands to the <see langword="+"/> operation are unacceptable.</exception>
-        public object VisitBinaryExpr(Expr.Binary expr)
+        public object? VisitBinaryExpr(Expr.Binary expr)
         {
             var left = Evaluate(expr.Left);
             var right = Evaluate(expr.Right);
@@ -73,60 +74,59 @@ namespace CsLox
             switch (expr.Oper.Type)
             {
                 case Token.TokenType.GREATER:
-                    CheckNumberOperands(expr.Oper, left, right);
-                    return (double)left > (double)right;
+                    CheckNumberOperands(expr.Oper, left!, right!);
+                    return (double)left! > (double)right!;
                 case Token.TokenType.GREATER_EQUAL:
-                    CheckNumberOperands(expr.Oper, left, right);
-                    return (double)left >= (double)right;
+                    CheckNumberOperands(expr.Oper, left!, right!);
+                    return (double)left! >= (double)right!;
                 case Token.TokenType.LESS:
-                    CheckNumberOperands(expr.Oper, left, right);
-                    return (double)left < (double)right;
+                    CheckNumberOperands(expr.Oper, left!, right!);
+                    return (double)left! < (double)right!;
                 case Token.TokenType.LESS_EQUAL:
-                    CheckNumberOperands(expr.Oper, left, right);
-                    return (double)left <= (double)right;
+                    CheckNumberOperands(expr.Oper, left!, right!);
+                    return (double)left! <= (double)right!;
                 case Token.TokenType.BANG_EQUAL:
-                    return !IsEqual(left, right);
+                    return !IsEqual(left!, right!);
                 case Token.TokenType.EQUAL_EQUAL:
-                    return IsEqual(left, right);
+                    return IsEqual(left!, right!);
                 case Token.TokenType.MINUS:
-                    CheckNumberOperands(expr.Oper, left, right);
-                    return (double)left - (double)right;
+                    CheckNumberOperands(expr.Oper, left!, right!);
+                    return (double)left! - (double)right!;
                 case Token.TokenType.PLUS:
                     {
-                        if (left is double && right is double)
+                        if (left is double ld && right is double rd)
                         {
-                            return (double)left + (double)right;
+                            return ld + rd;
                         }
-                        if (left is string && right is string)
+                        if (left is string ls && right is string rs)
                         {
-                            return (string)left + (string)right;
+                            return ls + rs;
                         }
 
                         throw new CsLoxRuntimeException(expr.Oper, "Operands must be two numbers or two strings.");
                     }
                 case Token.TokenType.SLASH:
-                    CheckNumberOperands(expr.Oper, left, right);
-                    return (double)left / (double)right;
+                    CheckNumberOperands(expr.Oper, left!, right!);
+                    return (double)left! / (double)right!;
                 case Token.TokenType.STAR:
-                    CheckNumberOperands(expr.Oper, left, right);
-                    return (double)left * (double)right;
+                    CheckNumberOperands(expr.Oper, left!, right!);
+                    return (double)left! * (double)right!;
             }
 
-            // Should be unreachable
-            return null;
+            throw new UnreachableException("VisitBinaryExpr unreachable!");
         }
 
         /// <summary>
         /// Evaluates a function call expression.
         /// </summary>
         /// <param name="expr">the expression being called.</param>
-        /// <returns>An <see langword="object"/> representing the return value of the function call.</returns>
+        /// <returns>An <see langword="object"/> representing the return value of the function call or <see langword="null"/>.</returns>
         /// <exception cref="CsLoxRuntimeException">Throws a runtime exception if the expression being called is neither a function nor a class.</exception>
-        public object VisitCallExpr(Expr.Call expr)
+        public object? VisitCallExpr(Expr.Call expr)
         {
             var callee = Evaluate(expr.Callee);
 
-            var args = new List<object>();
+            var args = new List<object?>();
             foreach (var arg in expr.Args)
             {
                 args.Add(Evaluate(arg));
@@ -147,12 +147,18 @@ namespace CsLox
             return fun.Call(this, args);
         }
 
-        public object VisitGetExpr(Expr.Get expr)
+        /// <summary>
+        /// Evaluates <see cref="Expr.Get"/> expressions.
+        /// </summary>
+        /// <param name="expr">the expression to be evaluated.</param>
+        /// <returns>An <see langword="object"/> containing the value retrieved.</returns>
+        /// <exception cref="CsLoxRuntimeException">Thrown when attempting to get a property on an object that is not a class instance.</exception>
+        public object? VisitGetExpr(Expr.Get expr)
         {
             var obj = Evaluate(expr.Obj);
-            if (obj is LoxInstance)
+            if (obj is LoxInstance instance)
             {
-                return ((LoxInstance)obj).Get(expr.Name);
+                return instance.Get(expr.Name)!;
             }
 
             throw new CsLoxRuntimeException(expr.Name, "Only instances have properties.");
@@ -163,7 +169,7 @@ namespace CsLox
         /// </summary>
         /// <param name="expr"></param>
         /// <returns>An <see langword="object"/> representing the result of evaluating <paramref name="expr"/>.</returns>
-        public object VisitGroupingExpr(Expr.Grouping expr)
+        public object? VisitGroupingExpr(Expr.Grouping expr)
         {
             return Evaluate(expr.Expression);
         }
@@ -173,7 +179,7 @@ namespace CsLox
         /// </summary>
         /// <param name="expr"></param>
         /// <returns>An <see langword="object"/> representing value <paramref name="expr"/>.</returns>
-        public object VisitLiteralExpr(Expr.Literal expr)
+        public object? VisitLiteralExpr(Expr.Literal expr)
         {
             return expr.Value!;
         }
@@ -183,9 +189,9 @@ namespace CsLox
         /// </summary>
         /// <param name="expr">The logical expression to evaluate.</param>
         /// <returns>An <see langword="object"/> with the required truthiness.</returns>
-        public object VisitLogicalExpr(Expr.Logical expr)
+        public object? VisitLogicalExpr(Expr.Logical expr)
         {
-            object left = Evaluate(expr.Left);
+            object left = Evaluate(expr.Left)!;
 
             if (expr.Oper.Type == Token.TokenType.OR)
             {
@@ -205,11 +211,11 @@ namespace CsLox
         /// <param name="expr"></param>
         /// <returns></returns>
         /// <exception cref="CsLoxRuntimeException"></exception>
-        public object VisitSetExpr(Expr.Set expr)
+        public object? VisitSetExpr(Expr.Set expr)
         {
             var obj = Evaluate(expr.Obj);
 
-            if(obj is not LoxInstance)
+            if (obj is not LoxInstance)
             {
                 throw new CsLoxRuntimeException(expr.Name, "Only instances have fields.");
             }
@@ -221,12 +227,12 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Evaluates <see cref="Expr.Super"/> expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">the expression to evaluate.</param>
         /// <returns></returns>
         /// <exception cref="CsLoxRuntimeException">If the method named in <paramref name="expr"/> is not defined, or if <see langword="super"/> cannot be found.</exception>
-        public object VisitSuperExpr(Expr.Super expr)
+        public object? VisitSuperExpr(Expr.Super expr)
         {
             var found = locals.TryGetValue(expr, out var distance);
             if (found)
@@ -234,12 +240,7 @@ namespace CsLox
                 var superclass = (LoxClass?)env.GetAt(distance, "super");
                 var @object = (LoxInstance?)env.GetAt(distance - 1, "this");
 
-                var method = superclass!.FindMethod(expr.Method.Lexeme);
-
-                if (method == null)
-                {
-                    throw new CsLoxRuntimeException(expr.Method, $"Undefined peoperty `{expr.Method.Lexeme}`.");
-                }
+                var method = superclass!.FindMethod(expr.Method.Lexeme) ?? throw new CsLoxRuntimeException(expr.Method, $"Undefined peoperty `{expr.Method.Lexeme}`.");
 
                 return method!.Bind(@object!);
             }
@@ -250,9 +251,9 @@ namespace CsLox
         /// <summary>
         /// Evaluates the this keyword by looking it up in the current environment.
         /// </summary>
-        /// <param name="expr"></param>
-        /// <returns></returns>
-        public object VisitThisExpr(Expr.This expr)
+        /// <param name="expr">The expression to evaluate.</param>
+        /// <returns>An <see langword="object"/> containing the resulting value.</returns>
+        public object? VisitThisExpr(Expr.This expr)
         {
             return LookUpVariable(expr.Keyword, expr);
         }
@@ -260,44 +261,42 @@ namespace CsLox
         /// <summary>
         /// Evaluates the unary experssion <paramref name="expr"/> and returns the result as an <see langword="object"/>.
         /// </summary>
-        /// <param name="expr"></param>
-        /// <returns></returns>
-        public object VisitUnaryExpr(Expr.Unary expr)
+        /// <param name="expr">The expression to evaluate.</param>
+        /// <returns>Either the result of applying logical not to the expression, or negation, depending on the operator and types.</returns>
+        /// <exception cref="UnreachableException">Thrown if <paramref name="expr.Oper.Type"/> is neither <see cref="TokenType"/>.BANG nor <see cref="TokenType"/>.MINUS.</exception>
+        public object? VisitUnaryExpr(Expr.Unary expr)
         {
             var right = Evaluate(expr.Right);
 
             switch (expr.Oper.Type)
             {
                 case Token.TokenType.BANG:
-                    return !IsTruthy(right);
+                    return !IsTruthy(right!);
                 case Token.TokenType.MINUS:
-                    CheckNumberOperand(expr.Oper, right);
-                    return -(double)right;
-
-
+                    CheckNumberOperand(expr.Oper, right!);
+                    return -(double)right!;
             }
 
-            // unreachable
-            return null;
+            throw new UnreachableException("VisitUnaryException unreachable!");
         }
 
         /// <summary>
         /// Evaluates the variable reference <paramref name="expr"/> and returns the result as an <see langword="object"/>.
         /// </summary>
         /// <param name="expr"></param>
-        /// <returns></returns>
-        public object VisitVariableExpr(Expr.Variable expr)
+        /// <returns>An <see langword="object"/> containing the resulting value, or <see langword="null"/> if lookup fails.</returns>
+        public object? VisitVariableExpr(Expr.Variable expr)
         {
-            return LookUpVariable(expr.Name, expr);
+            return LookUpVariable(expr.Name, expr)!;
         }
 
         /// <summary>
-        /// 
+        /// Looks up variables using resolution phase information about which scope the variable being referenced resides in.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="expr"></param>
-        /// <returns></returns>
-        private object LookUpVariable(Token name, Expr expr)
+        /// <param name="name">The name of the variable being looked up.</param>
+        /// <param name="expr">the expression being looked up.</param>
+        /// <returns>An <see langword="object"/> containing the resulting value, or <see langword="null"/> if lookup fails.</returns>
+        private object? LookUpVariable(Token name, Expr expr)
         {
             int distance = locals.GetValueOrDefault(expr, -1);
             if (distance != -1)
@@ -334,7 +333,7 @@ namespace CsLox
         /// </summary>
         /// <param name="expr">An expression to evaluate.</param>
         /// <returns>An <see langword="object"/> containing the result of evaluating expr.</returns>
-        private object Evaluate(Expr expr)
+        private object? Evaluate(Expr expr)
         {
             return expr.Accept(this);
         }
@@ -366,7 +365,7 @@ namespace CsLox
         /// </summary>
         /// <param name="stmt"></param>
         /// <returns></returns>
-        public object VisitBlockStmt(Stmt.Block stmt)
+        public object? VisitBlockStmt(Stmt.Block stmt)
         {
             ExecuteBlock(stmt.Stmts, new LoxEnvironment(env));
 
@@ -378,7 +377,7 @@ namespace CsLox
         /// </summary>
         /// <param name="stmt"></param>
         /// <returns></returns>
-        public object VisitClassStmt(Stmt.Class stmt)
+        public object? VisitClassStmt(Stmt.Class stmt)
         {
             object? superclass = null;
             if (stmt.Superclass != null)
@@ -405,7 +404,7 @@ namespace CsLox
                 methods[method.Name.Lexeme] = function;
             }
 
-            LoxClass @class = new LoxClass(stmt.Name.Lexeme, (LoxClass?)superclass, methods);
+            var @class = new LoxClass(stmt.Name.Lexeme, (LoxClass?)superclass, methods);
 
             if (superclass != null)
             {
@@ -446,12 +445,12 @@ namespace CsLox
         /// </summary>
         /// <param name="obj">An object to test for truthines.</param>
         /// <returns><see langword="false"/> if obj is <see langword="null"/> or <see langword="false"/>, otherwise <see langword="true"/>.</returns>
-        private bool IsTruthy(object obj)
+        private static bool IsTruthy(object obj)
         {
             if (obj == null)
                 return false;
-            if (obj is bool)
-                return (bool)obj;
+            if (obj is bool result)
+                return result;
 
             return true;
         }
@@ -465,7 +464,7 @@ namespace CsLox
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns><see langword="true"/> if the specified object is equal to the current object, otherwise <see langword="false"/>.</returns>
-        private bool IsEqual(object left, object right)
+        private static bool IsEqual(object left, object right)
         {
             return left.Equals(right);
         }
@@ -479,7 +478,7 @@ namespace CsLox
         /// <param name="oper">The token, to be used in the case that an error is thrown.</param>
         /// <param name="operand">The operand to be checked.</param>
         /// <exception cref="CsLoxRuntimeException"></exception>
-        private void CheckNumberOperand(Token oper, object operand)
+        private static void CheckNumberOperand(Token oper, object operand)
         {
             if (operand is double)
                 return;
@@ -497,7 +496,7 @@ namespace CsLox
         /// <param name="left">An operand to be checked.</param>
         /// <param name="right">An operand to be checked.</param>
         /// <exception cref="CsLoxRuntimeException"></exception>
-        private void CheckNumberOperands(Token oper, object left, object right)
+        private static void CheckNumberOperands(Token oper, object left, object right)
         {
             if (left is double && right is double)
                 return;
@@ -513,12 +512,12 @@ namespace CsLox
         /// </summary>
         /// <param name="obj">The <see langword="object"/> to be converted.</param>
         /// <returns><paramref name="obj"/>.ToString() except in the case of numbers. Represents <see langword="null"/> as <see langword="nil"/>.</returns>
-        private string Stringify(object obj)
+        private static string Stringify(object obj)
         {
             if (obj == null) return "nil";
 
-            if (obj is double)
-                return string.Format("{0:G29}", (double)obj);
+            if (obj is double num)
+                return string.Format("{0:G29}", num);
 
             return obj.ToString() ?? "nil";
         }
@@ -530,7 +529,7 @@ namespace CsLox
         /// </summary>
         /// <param name="stmt"></param>
         /// <returns><see langword="null"/>.</returns>
-        public object VisitExpressionStmt(Stmt.Expression stmt)
+        public object? VisitExpressionStmt(Stmt.Expression stmt)
         {
             Evaluate(stmt.Expr);
             
@@ -542,7 +541,7 @@ namespace CsLox
         /// </summary>
         /// <param name="stmt"></param>
         /// <returns><see langword="null"/>.</returns>
-        public object VisitFunctionStmt(Stmt.Function stmt)
+        public object? VisitFunctionStmt(Stmt.Function stmt)
         {
             var function = new LoxFunction(stmt, env, false);
             env.Define(stmt.Name.Lexeme, function);
@@ -557,9 +556,9 @@ namespace CsLox
         /// </summary>
         /// <param name="stmt"></param>
         /// <returns><see langword="null"/>.</returns>
-        public object VisitIfStmt(Stmt.If stmt)
+        public object? VisitIfStmt(Stmt.If stmt)
         {
-            if (IsTruthy(Evaluate(stmt.Cond)))
+            if (IsTruthy(Evaluate(stmt.Cond)!))
                 Execute(stmt.ThenBranch);
             else if (stmt.ElseBranch != null)
                 Execute(stmt.ElseBranch);
@@ -572,10 +571,10 @@ namespace CsLox
         /// </summary>
         /// <param name="stmt"></param>
         /// <returns><see langword="null"/>.</returns>
-        public object VisitPrintStmt(Stmt.Print stmt)
+        public object? VisitPrintStmt(Stmt.Print stmt)
         {
             var value = Evaluate(stmt.Expr);
-            Console.WriteLine(Stringify(value));
+            Console.WriteLine(Stringify(value!));
 
             return null;
         }
@@ -591,7 +590,7 @@ namespace CsLox
         [DoesNotReturn]
         public object VisitReturnStmt(Stmt.Return stmt)
         {
-            object value = null;
+            object? value = null;
             if (stmt.Value != null)
             {
                 value = Evaluate(stmt.Value);
@@ -605,9 +604,9 @@ namespace CsLox
         /// </summary>
         /// <param name="stmt"></param>
         /// <returns><see langword="null"/>.</returns>
-        public object VisitVarStmt(Stmt.Var stmt)
+        public object? VisitVarStmt(Stmt.Var stmt)
         {
-            object value = null;
+            object? value = null;
             if (stmt.Initializer != null)
             {
                 value = Evaluate(stmt.Initializer);
@@ -623,9 +622,9 @@ namespace CsLox
         /// </summary>
         /// <param name="stmt"></param>
         /// <returns><see langword="null"/>.</returns>
-        public object VisitWhileStmt(Stmt.While stmt)
+        public object? VisitWhileStmt(Stmt.While stmt)
         {
-            while (IsTruthy(Evaluate(stmt.Cond)))
+            while (IsTruthy(Evaluate(stmt.Cond)!))
             {
                 Execute(stmt.Body);
             }
@@ -638,7 +637,7 @@ namespace CsLox
         /// </summary>
         /// <param name="expr">The assignment expression to evaluate.</param>
         /// <returns>the value assigned to <see cref="Expr.Assign.Name"/>.</returns>
-        public object VisitAssignExpr(Expr.Assign expr)
+        public object? VisitAssignExpr(Expr.Assign expr)
         {
             var value = Evaluate(expr.Value);
 

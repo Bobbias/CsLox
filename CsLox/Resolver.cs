@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CsLox
 {
     /// <summary>
-    /// Handles variable resolution.
+    /// Handles an intermediate phase, after lexing and parsing, but before any code is evaluated by the interpreter.
     /// </summary>
     public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
@@ -35,14 +36,17 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// The Lox interpreter. Resolution passes some information about variables to the interpreter during the resolution
+        /// phase.
         /// </summary>
         private readonly Interpreter interpreter;
 
         /// <summary>
-        /// 
+        /// The stack of variable scopes. At any point during the program, some number of scopes will be visible and populated.
+        /// Because Lox is lexically scoped, scopes can be determined before evaluating any code. This is used to track which
+        /// variables have been declared or defined.
         /// </summary>
-        private readonly Stack<Dictionary<string, object>> scopes = new Stack<Dictionary<string, object>>();
+        private readonly Stack<Dictionary<string, object>> scopes = new();
 
         /// <summary>
         /// Tracks whether we're inside a function or not. This aids us in catching cases where a return statement
@@ -78,18 +82,18 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Helper which manages multiple dispatch to call the correct visitor method for resolving Lox expressions.
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <param name="stmt">The statement to resolve.</param>
         public void Resolve(Stmt stmt)
         {
             stmt.Accept(this);
         }
 
         /// <summary>
-        /// 
+        /// Helper which manages multiple dispatch to call the correct visitor method for resolving Lox expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expression to resolve.</param>
         public void Resolve(Expr expr)
         {
             expr.Accept(this);
@@ -115,7 +119,7 @@ namespace CsLox
         /// Adds an entry to the current scope indicating that a variable name has been declared.
         /// we bind it's name to the value <see langword="false"/> to indicate it's uninitialized.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">The name of the variable to be marked as declared byt not defined.</param>
         private void Declare(Token name)
         {
             if(scopes.Count == 0)
@@ -126,7 +130,7 @@ namespace CsLox
             {
                 scopes.Peek().Add(name.Lexeme, false);
             }
-            catch(ArgumentException e)
+            catch(ArgumentException)
             {
                 CLI.Error(name, "Already a variable with this name in this scope.");
             }
@@ -136,7 +140,7 @@ namespace CsLox
         /// Adds or updates an entry to the current scope indicating that a variable name has been
         /// initialized. We bind it's name to <see langword="true"/> to indicate it's initialized.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">The name of the variable to be marked as defined.</param>
         private void Define(Token name)
         {
             if (scopes.Count == 0)
@@ -150,8 +154,11 @@ namespace CsLox
         /// <summary>
         /// Resolves a local variable.
         /// </summary>
-        /// <param name="expr"></param>
-        /// <param name="name"></param>
+        /// <remarks>
+        /// Checks the current scope first, iterating in reverse until the global scope is reached.
+        /// </remarks>
+        /// <param name="expr">The expression containing the local variable.</param>
+        /// <param name="name">The name of the local variable.</param>
         private void ResolveLocal(Expr expr, Token name)
         {
             for (int i = scopes.Count - 1; i >= 0; --i)
@@ -164,9 +171,10 @@ namespace CsLox
         }
 
         /// <summary>
-        /// Resolves a function.
+        /// Resolves <see cref="Stmt.Function"/>s, creating a new scope and adding all parameters to it, as well as tracking the function type.
         /// </summary>
-        /// <param name="function"></param>
+        /// <param name="function">The function to resolve.</param>
+        /// <param name="type">The type of the function to resolve.</param>
         private void ResolveFunction(Stmt.Function function, FunctionType type)
         {
             FunctionType enclosingFunction = currentFunction;
@@ -185,9 +193,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Assign"/> expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expression to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitAssignExpr(Expr.Assign expr)
         {
@@ -198,9 +206,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Binary"/> expressions by resolving the left hand expression and then the right hand expression.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expression to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitBinaryExpr(Expr.Binary expr)
         {
@@ -211,9 +219,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Stmt.Block"/> statements by creating a new scope and resolving the statements contained within.
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <param name="stmt">The statement to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitBlockStmt(Stmt.Block stmt)
         {
@@ -225,10 +233,11 @@ namespace CsLox
         }
 
         /// <summary>
-        /// Resolves variables in class declarations. This includes implicitly defining
-        /// <see langword="this"/> and <see langword="super"/>.
+        /// Resolves variables in <see cref="Stmt.Class"/> statements (class declarations).
+        /// This includes implicitly defining <see langword="this"/> and <see langword="super"/>.
+        /// Checks for errors such as self-inheritance.
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <param name="stmt">The statement to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitClassStmt(Stmt.Class stmt)
         {
@@ -283,9 +292,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Call"/> expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expression to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitCallExpr(Expr.Call expr)
         {
@@ -300,9 +309,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Get"/> expressions (that is, expressions which accesses a property of a class).
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expression to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitGetExpr(Expr.Get expr)
         {
@@ -312,9 +321,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Stmt.Expression"/> statements.
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <param name="stmt">The statement to be resolved.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitExpressionStmt(Stmt.Expression stmt)
         {
@@ -324,9 +333,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Stmt.Function"/> statements.
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <param name="stmt">The statement to be resolved.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitFunctionStmt(Stmt.Function stmt)
         {
@@ -339,7 +348,7 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Grouping"/> expressions.
         /// </summary>
         /// <param name="expr"></param>
         /// <returns><see langword="null"/>.</returns>
@@ -351,9 +360,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Stmt.If"/> statements. 
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <param name="stmt">The statement to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitIfStmt(Stmt.If stmt)
         {
@@ -368,19 +377,23 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Literal"/> expressions.
         /// </summary>
+        /// <remarks>
+        /// This function currently does nothing except return null.
+        /// </remarks>
         /// <param name="expr"></param>
         /// <returns><see langword="null"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public object? VisitLiteralExpr(Expr.Literal expr)
         {
             return null;
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Logical"/> expressions (<see langword="and"/> and <see langword="or"/>).
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expression to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitLogicalExpr(Expr.Logical expr)
         {
@@ -391,7 +404,7 @@ namespace CsLox
         }
 
         /// <summary>
-        /// Resolves a <see cref="Expr.Set"/> expression.
+        /// Resolves <see cref="Expr.Set"/> expressions.
         /// </summary>
         /// <param name="expr">The expression to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
@@ -404,9 +417,13 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Super"/> expressions. Checks whether a super expression is allowed in the current context.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <remarks>
+        /// If a super expression is ecncountered at the top level (ie. outside of a class), or in a class with no superclass,
+        /// this will trigger an error.
+        /// </remarks>
+        /// <param name="expr">The expression to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitSuperExpr(Expr.Super expr)
         {
@@ -425,9 +442,12 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.This"/> expressions. Checks whether a this expression is allowed in the current context.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <remarks>
+        /// If this is encountered at the top level (ie. outside of a method context) this will trigger an error.
+        /// </remarks>
+        /// <param name="expr">the expression to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitThisExpr(Expr.This expr)
         {
@@ -443,9 +463,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Stmt.Print"/> statements.
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <param name="stmt">The statement to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitPrintStmt(Stmt.Print stmt)
         {
@@ -455,9 +475,13 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Stmt.Return"/> statements. Checks whether a return statement is allowed in the current context.
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <remarks>
+        /// If a return statement is encountered at the top level (ie. outside of a function context), this will trigger an error.
+        /// If a return statement is provided a return value, and is encountered in an initializer (class constructor), this will trigger an error.
+        /// </remarks>
+        /// <param name="stmt">The statement to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitReturnStmt(Stmt.Return stmt)
         {
@@ -480,9 +504,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Unary"/> expressions.
         /// </summary>
-        /// <param name="expr"></param>
+        /// <param name="expr">The expression to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitUnaryExpr(Expr.Unary expr)
         {
@@ -492,13 +516,13 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Expr.Variable"/> expressions, or references to variables.
         /// </summary>
-        /// <param name="expr"></param>
-        /// <returns></returns>
+        /// <param name="expr">the expression to resolve.</param>
+        /// <returns><see langword="null"/>.</returns>
         public object? VisitVariableExpr(Expr.Variable expr)
         {
-            if((scopes.Count != 0) && (bool)scopes.Peek()[expr.Name.Lexeme] == false)
+            if ((scopes.Count != 0) && !(bool)scopes.Peek()[expr.Name.Lexeme])
             {
                 CLI.Error(expr.Name, "Can't read local variable in its own initializer.");
             }
@@ -509,9 +533,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Stmt.Var"/> statements by declaring the variable, resolving the initializer expression, and marking the variable as defined after.
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <param name="stmt">The statement to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitVarStmt(Stmt.Var stmt)
         {
@@ -526,9 +550,9 @@ namespace CsLox
         }
 
         /// <summary>
-        /// 
+        /// Resolves <see cref="Stmt.While"/> statements, resolving variables in the condition, and then the body.
         /// </summary>
-        /// <param name="stmt"></param>
+        /// <param name="stmt">The statement to resolve.</param>
         /// <returns><see langword="null"/>.</returns>
         public object? VisitWhileStmt(Stmt.While stmt)
         {

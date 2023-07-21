@@ -6,8 +6,14 @@ using System.Threading.Tasks;
 
 namespace GenerateAst
 {
+    /// <summary>
+    /// Holds the CLI commands for the AST Generator tool.
+    /// </summary>
     internal static class CLI
     {
+        /// <summary>
+        /// The main command for the AST Generator tool.
+        /// </summary>
         public static void HandleMainCommand()
         {
             var file = new FileInfo("Expr.cs");
@@ -36,8 +42,8 @@ namespace GenerateAst
                 "Function   : Token name, List<Token> parameters, List<Stmt> body",
                 "If         : Expr cond, Stmt thenBranch, Stmt? elseBranch",
                 "Print      : Expr expr",
-                "Return     : Token keyword, Expr value",
-                "Var        : Token name, Expr initializer",
+                "Return     : Token keyword, Expr? value",
+                "Var        : Token name, Expr? initializer",
                 "While      : Expr cond, Stmt body"
             });
         }

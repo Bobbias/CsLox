@@ -120,7 +120,7 @@ namespace CsLox
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <exception cref="CsLoxRuntimeException">Throws an exception if the given variable is not defined on either this environment or an enclosing one.</exception>
-        public void Assign(Token name, object value)
+        public void Assign(Token name, object? value)
         {
             if (Values.ContainsKey(name.Lexeme))
             {

@@ -55,7 +55,7 @@ namespace CsLox
         /// <param name="interpreter">The interpreter instance to execute the function call with.</param>
         /// <param name="args">The arguments with which to call the function.</param>
         /// <returns>Either an <see langword="object"/> containing the return value of the function call, or <see langword="null"/> if none.</returns>
-        public object Call(Interpreter interpreter, List<object> args)
+        public object? Call(Interpreter interpreter, List<object?> args)
         {
             var environment = new LoxEnvironment(closure);
 

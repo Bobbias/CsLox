@@ -153,9 +153,9 @@ namespace CsLox
         public class Return : Stmt
         {
             public Token Keyword { get; }
-            public Expr Value { get; }
+            public Expr? Value { get; }
 
-            public Return (Token keyword, Expr value)
+            public Return (Token keyword, Expr? value)
             {
                 Keyword = keyword;
                 Value = value;
@@ -172,9 +172,9 @@ namespace CsLox
         public class Var : Stmt
         {
             public Token Name { get; }
-            public Expr Initializer { get; }
+            public Expr? Initializer { get; }
 
-            public Var (Token name, Expr initializer)
+            public Var (Token name, Expr? initializer)
             {
                 Name = name;
                 Initializer = initializer;

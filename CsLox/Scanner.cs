@@ -192,7 +192,7 @@ namespace CsLox
         /// <returns></returns>
         private char Advance()
         {
-            return Source.ElementAt(current++);
+            return Source[current++];
         }
 
         /// <summary>
@@ -202,7 +202,7 @@ namespace CsLox
         private char Peek()
         {
             if (IsAtEnd()) return '\0';
-            return Source.ElementAt(current);
+            return Source[current];
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace CsLox
         private char PeekNext()
         {
             if (current + 1 >= Source.Length) return '\0';
-            return Source.ElementAt(current + 1);
+            return Source[current + 1];
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace CsLox
         private bool Match(char expected)
         {
             if (IsAtEnd()) return false;
-            if (Source.ElementAt(current) != expected) return false;
+            if (Source[current] != expected) return false;
 
             current++;
             return true;
@@ -304,8 +304,7 @@ namespace CsLox
             while (Char.IsLetterOrDigit(Peek())) Advance();
 
             string text = Source[start..current];
-            TokenType type;
-            var result = Keywords.TryGetValue(text, out type);
+            var result = Keywords.TryGetValue(text, out TokenType type);
             if (!result) type = TokenType.IDENTIFIER;
             AddToken(type);
         }

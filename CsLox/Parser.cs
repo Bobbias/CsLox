@@ -59,7 +59,7 @@ namespace CsLox
             var statements = new List<Stmt>();
             while (!IsAtEnd())
             {
-                statements.Add(Declaration());
+                statements.Add(Declaration()!);
             }
 
             return statements;
@@ -78,7 +78,7 @@ namespace CsLox
         /// Parses a variable declaration statement.
         /// </summary>
         /// <returns>A <see cref="Stmt"/>, or <see langword="null"/> if an error is encountered.</returns>
-        private Stmt Declaration()
+        private Stmt? Declaration()
         {
             try
             {
@@ -88,7 +88,7 @@ namespace CsLox
 
                 return Statement();
             }
-            catch (ParseException e)
+            catch (ParseException)
             {
                 Synchronize();
                 return null;
@@ -103,7 +103,7 @@ namespace CsLox
         {
             var name = Consume(TokenType.IDENTIFIER, "Expected class name.");
 
-            Expr.Variable superclass = null;
+            Expr.Variable? superclass = null;
             if (Match(TokenType.LESS))
             {
                 Consume(TokenType.IDENTIFIER, "Expected superclass name.");
@@ -168,7 +168,7 @@ namespace CsLox
         {
             Consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.");
 
-            Stmt initializer;
+            Stmt? initializer;
             if (Match(TokenType.SEMICOLON))
             {
                 initializer = null;
@@ -182,14 +182,14 @@ namespace CsLox
                 initializer = ExpressionStatement();
             }
 
-            Expr cond = null;
+            Expr? cond = null;
             if (!Check(TokenType.SEMICOLON))
             {
                 cond = Expression();
             }
             Consume(TokenType.SEMICOLON, "Expected ';' after loop condition.");
 
-            Expr increment = null;
+            Expr? increment = null;
             if(!Check(TokenType.RIGHT_PAREN))
             {
                 increment = Expression();
@@ -208,10 +208,7 @@ namespace CsLox
                 );
             }
 
-            if (cond == null)
-            {
-                cond = new Expr.Literal(true);
-            }
+            cond ??= new Expr.Literal(true);
             body = new Stmt.While(cond, body);
 
             if (initializer != null)
@@ -266,7 +263,7 @@ namespace CsLox
         private Stmt ReturnStatement()
         {
             var keyword = Previous();
-            Expr value = null;
+            Expr? value = null;
             if(!Check(TokenType.SEMICOLON))
             {
                 value = Expression();
@@ -298,7 +295,7 @@ namespace CsLox
         {
             var name = Consume(TokenType.IDENTIFIER, "Expected variable name.");
 
-            Expr initializer = null;
+            Expr? initializer = null;
             if (Match(TokenType.EQUAL))
             {
                 initializer = Expression();
@@ -355,7 +352,7 @@ namespace CsLox
 
             while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
             {
-                statements.Add(Declaration());
+                statements.Add(Declaration()!);
             }
 
             Consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
@@ -377,7 +374,7 @@ namespace CsLox
 
                 if (expr is Expr.Variable variable)
                 {
-                    var name = (variable).Name;
+                    var name = variable.Name;
                     return new Expr.Assign(name, value);
                 }
                 else if (expr is Expr.Get getExpr)
@@ -520,6 +517,9 @@ namespace CsLox
         /// <summary>
         /// call           → primary ( "(" arguments? ")" )* ;
         /// </summary>
+        /// <remarks>
+        /// <note type="important" title="Argument limit">A function may have no more than 255 arguments.</note>
+        /// </remarks>
         /// <returns>An <see cref="Expr"/>.</returns>
         private Expr Call()
         {
@@ -548,7 +548,10 @@ namespace CsLox
         /// <summary>
         /// Utility function to handle parsing the argument list.
         /// </summary>
-        /// <param name="callee"></param>
+        /// <remarks>
+        /// <note type="important" title="Argument limit">A function may have no more than 255 arguments.</note>
+        /// </remarks>
+        /// <param name="callee">The function to be called.</param>
         /// <returns>
         /// An <see cref="Expr.Call"/> containing the callee passed from <see cref="Call"/>,
         /// the closing parenthesis for error reporting, and the argument list.
@@ -673,7 +676,7 @@ namespace CsLox
         /// <returns>The current <see cref="Token"/>.</returns>
         private Token Peek()
         {
-            return Tokens.ElementAt(Current);
+            return Tokens[Current];
         }
 
         /// <summary>
@@ -682,7 +685,7 @@ namespace CsLox
         /// <returns>The previous <see cref="Token"/>.</returns>
         private Token Previous()
         {
-            return Tokens.ElementAt(Current - 1);
+            return Tokens[Current - 1];
         }
 
         /// <summary>
@@ -705,7 +708,7 @@ namespace CsLox
         /// <param name="token">The <see cref="Token"/> where the error occurred.</param>
         /// <param name="message">A string containing an error message to display to the user.</param>
         /// <returns>A <see cref="ParseException"/> containing the given error message.</returns>
-        private ParseException Error(Token token, string message)
+        private static ParseException Error(Token token, string message)
         {
             CLI.Error(token, message);
             return new ParseException(message);
