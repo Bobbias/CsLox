@@ -21,6 +21,7 @@ namespace CsLox
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
  *                | "(" expression ")" ;
  */
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     abstract public class Expr
     {
         public interface IVisitor<T>
@@ -269,4 +270,5 @@ namespace CsLox
 
         public abstract T Accept<T>(IVisitor<T> visitor);
     } // Expr
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 } // namespace

@@ -46,6 +46,7 @@ namespace GenerateAst
                      * primary        → NUMBER | STRING | "true" | "false" | "nil"
                      *                | "(" expression ")" ;
                      */
+                    #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
                     """);
 
                 sr.WriteLine($"    abstract public class {baseName}{Environment.NewLine}    {{");
@@ -63,6 +64,7 @@ namespace GenerateAst
                 sr.WriteLine("        public abstract T Accept<T>(IVisitor<T> visitor);");
 
                 sr.WriteLine($"    }} // {baseName}");  // class
+                sr.WriteLine("#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member");
                 sr.WriteLine("} // namespace");  // namespace
             }
         }
