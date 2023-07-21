@@ -248,7 +248,7 @@ namespace CsLox
         /// <summary>
         /// Collects a few utility features, such as checking whether the console supports ANSI escape sequences.
         /// </summary>
-        internal static class ConsoleUtil
+        internal static partial class ConsoleUtil
         {
             /// <summary>
             /// See <see href="https://learn.microsoft.com/en-us/windows/console/getconsolemode">GetConsoleMode</see> at MSDN.
@@ -256,16 +256,17 @@ namespace CsLox
             /// <param name="hConsoleHandle">A handle to a console.</param>
             /// <param name="lpMode">The <see cref="ConsoleMode"/> requested.</param>
             /// <returns></returns>
-            [DllImport("kernel32.dll", SetLastError = true)]
-            static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+            [LibraryImport("kernel32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static partial bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
 
             /// <summary>
             /// See <see href="https://learn.microsoft.com/en-us/windows/console/getstdhandle">GetStdHandle</see> at MSDN.
             /// </summary>
             /// <param name="nStdHandle">The id of the standard IO to get a handle to. See <see cref="StandardIOHandles"/>.</param>
             /// <returns>An <see cref="IntPtr"/> containing a handle to the standard IO specified.</returns>
-            [DllImport("kernel32.dll", SetLastError = true)]
-            static extern IntPtr GetStdHandle(int nStdHandle);
+            [LibraryImport("kernel32.dll", SetLastError = true)]
+            public static partial IntPtr GetStdHandle(int nStdHandle);
 
             /// <summary>
             /// Defines various console mode values which can be get or set using the appropriate functions.
