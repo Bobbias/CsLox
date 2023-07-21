@@ -32,7 +32,7 @@ namespace CsLox
             /// <param name="interpreter"></param>
             /// <param name="args"></param>
             /// <returns>A <see langword="double"/> containing the number of seconds passed since the system booted.</returns>
-            public object Call(Interpreter interpreter, List<object> args)
+            public object? Call(Interpreter interpreter, List<object?> args)
             {
                 return Environment.TickCount64 / 1000.0;
             }
