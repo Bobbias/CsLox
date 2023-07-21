@@ -36,7 +36,7 @@ namespace CsLox
         public static Interpreter Interpreter { get; } = new Interpreter();
 
         /// <summary>
-        /// Exit codes defined in <see href="https://man.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html">sysexit.h</see>.
+        /// Exit codes defined in <see href="https://man.freebsd.org/cgi/man.cgi?query=sysexits&amp;apropos=0&amp;sektion=0&amp;manpath=FreeBSD+4.3-RELEASE&amp;format=html">sysexit.h</see>.
         /// </summary>
         private enum ExitCode : int
         {
@@ -253,20 +253,23 @@ namespace CsLox
             /// <summary>
             /// See <see href="https://learn.microsoft.com/en-us/windows/console/getconsolemode">GetConsoleMode</see> at MSDN.
             /// </summary>
-            /// <param name="hConsoleHandle"></param>
-            /// <param name="lpMode"></param>
+            /// <param name="hConsoleHandle">A handle to a console.</param>
+            /// <param name="lpMode">The <see cref="ConsoleMode"/> requested.</param>
             /// <returns></returns>
             [DllImport("kernel32.dll", SetLastError = true)]
             static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
 
             /// <summary>
-            /// See <see cref="https://learn.microsoft.com/en-us/windows/console/getstdhandle">GetStdHandle</see> at MSDN.
+            /// See <see href="https://learn.microsoft.com/en-us/windows/console/getstdhandle">GetStdHandle</see> at MSDN.
             /// </summary>
-            /// <param name="nStdHandle"></param>
-            /// <returns></returns>
+            /// <param name="nStdHandle">The id of the standard IO to get a handle to. See <see cref="StandardIOHandles"/>.</param>
+            /// <returns>An <see cref="IntPtr"/> containing a handle to the standard IO specified.</returns>
             [DllImport("kernel32.dll", SetLastError = true)]
             static extern IntPtr GetStdHandle(int nStdHandle);
 
+            /// <summary>
+            /// Defines various console mode values which can be get or set using the appropriate functions.
+            /// </summary>
             [Flags]
             private enum ConsoleModes : uint
             {
