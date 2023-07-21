@@ -7,8 +7,17 @@ using System.Threading.Tasks;
 
 namespace CsLox
 {
+    /// <summary>
+    /// Contains runtime implementations for native functions in Lox.
+    /// </summary>
     public static class NativeFns
     {
+        /// <summary>
+        /// Represents the native function clock() in Lox, which returns the number of seconds since some fixed point in time.
+        /// </summary>
+        /// <remarks>
+        /// In this implementation, I have chosen to return the number of seconds since system boot, rather than unix time, which the original Java implementation does.
+        /// </remarks>
         public class Clock : ILoxCallable
         {
             /// <summary>
@@ -19,6 +28,9 @@ namespace CsLox
             /// </remarks>
             public int Arity { get; set; } = 0;
 
+            /// <summary>
+            /// Initializes a new instance of the Clock class.
+            /// </summary>
             public Clock() { }
 
             /// <summary>
