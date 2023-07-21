@@ -29,7 +29,7 @@ namespace CsLox
     /// <summary>
     /// Implements a revursive descent parser for the Lox language.
     /// </summary>
-    internal class Parser
+    public class Parser
     {
         /// <summary>
         /// A list of tokens to parse.
