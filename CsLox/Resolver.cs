@@ -427,7 +427,7 @@ namespace CsLox
         /// <returns><see langword="null"/>.</returns>
         public object? VisitSuperExpr(Expr.Super expr)
         {
-            if(currentClass == ClassType.NONE)
+            if (currentClass == ClassType.NONE)
             {
                 CLI.Error(expr.Keyword, "Can't use `super` outside of a class.");
             }
